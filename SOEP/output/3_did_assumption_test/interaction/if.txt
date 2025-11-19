@@ -1,0 +1,316 @@
+Pre-trend Interaction Test on If Savings
+----------------------------------------------------
+                              (1)             (2)   
+                       if_savings      if_savings   
+----------------------------------------------------
+if_savings                                          
+post=0                      0.000                   
+                              (.)                   
+
+post=1                      0.721***                
+                          (0.089)                   
+
+type_employment=0           0.000           0.000   
+                              (.)             (.)   
+
+type_employment=1           0.477***        1.095** 
+                          (0.084)         (0.538)   
+
+post=0 # type_empl~0        0.000                   
+                              (.)                   
+
+post=0 # type_empl~1        0.000                   
+                              (.)                   
+
+post=1 # type_empl~0        0.000                   
+                              (.)                   
+
+post=1 # type_empl~1       -0.614***                
+                          (0.091)                   
+
+Survey Year=1992                            0.000   
+                                              (.)   
+
+Survey Year=1993                            0.405   
+                                          (0.782)   
+
+Survey Year=1994                            1.504   
+                                          (0.972)   
+
+Survey Year=1995                            0.965   
+                                          (0.819)   
+
+Survey Year=1996                            0.118   
+                                          (0.928)   
+
+Survey Year=1997                            0.223   
+                                          (0.803)   
+
+Survey Year=1998                            0.405   
+                                          (0.691)   
+
+Survey Year=1999                            0.629   
+                                          (0.709)   
+
+Survey Year=2000                            0.428   
+                                          (0.569)   
+
+Survey Year=2001                            0.747   
+                                          (0.584)   
+
+Survey Year=2002                            0.539   
+                                          (0.576)   
+
+Survey Year=2003                            0.965*  
+                                          (0.586)   
+
+Survey Year=2004                            0.565   
+                                          (0.585)   
+
+Survey Year=2005                            0.925   
+                                          (0.592)   
+
+Survey Year=2006                            0.733   
+                                          (0.577)   
+
+Survey Year=2007                            1.168** 
+                                          (0.590)   
+
+Survey Year=2008                            1.281** 
+                                          (0.590)   
+
+Survey Year=2009                            1.006*  
+                                          (0.569)   
+
+Survey Year=2010                            0.853   
+                                          (0.543)   
+
+Survey Year=2011                            1.033*  
+                                          (0.544)   
+
+Survey Year=2012                            0.946*  
+                                          (0.544)   
+
+Survey Year=2013                            0.871   
+                                          (0.541)   
+
+Survey Year=2014                            1.157** 
+                                          (0.547)   
+
+Survey Year=2015                            0.866   
+                                          (0.546)   
+
+Survey Year=2016                            1.108** 
+                                          (0.552)   
+
+Survey Year=2017                            1.176** 
+                                          (0.547)   
+
+Survey Year=2018                            1.486***
+                                          (0.549)   
+
+Survey Year=2019                            1.844***
+                                          (0.534)   
+
+Survey Year=2020                            1.780***
+                                          (0.538)   
+
+Survey Year=2021                            1.896***
+                                          (0.546)   
+
+Survey Year=2022                            1.531***
+                                          (0.537)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=0 ~=                        0.000   
+                                              (.)   
+
+type_employment=1 ~=                        0.000   
+                                              (.)   
+
+type_employment=1 ~=                       -0.257   
+                                          (0.795)   
+
+type_employment=1 ~=                       -1.313   
+                                          (0.982)   
+
+type_employment=1 ~=                       -0.978   
+                                          (0.830)   
+
+type_employment=1 ~=                       -0.055   
+                                          (0.937)   
+
+type_employment=1 ~=                       -0.142   
+                                          (0.813)   
+
+type_employment=1 ~=                       -0.414   
+                                          (0.703)   
+
+type_employment=1 ~=                       -0.578   
+                                          (0.720)   
+
+type_employment=1 ~=                       -0.398   
+                                          (0.581)   
+
+type_employment=1 ~=                       -0.630   
+                                          (0.596)   
+
+type_employment=1 ~=                       -0.534   
+                                          (0.588)   
+
+type_employment=1 ~=                       -0.986*  
+                                          (0.597)   
+
+type_employment=1 ~=                       -0.568   
+                                          (0.596)   
+
+type_employment=1 ~=                       -0.878   
+                                          (0.603)   
+
+type_employment=1 ~=                       -0.770   
+                                          (0.589)   
+
+type_employment=1 ~=                       -1.049*  
+                                          (0.601)   
+
+type_employment=1 ~=                       -1.145*  
+                                          (0.602)   
+
+type_employment=1 ~=                       -0.937   
+                                          (0.580)   
+
+type_employment=1 ~=                       -1.036*  
+                                          (0.555)   
+
+type_employment=1 ~=                       -1.112** 
+                                          (0.555)   
+
+type_employment=1 ~=                       -1.061*  
+                                          (0.556)   
+
+type_employment=1 ~=                       -0.982*  
+                                          (0.552)   
+
+type_employment=1 ~=                       -1.174** 
+                                          (0.559)   
+
+type_employment=1 ~=                       -0.886   
+                                          (0.557)   
+
+type_employment=1 ~=                       -1.017*  
+                                          (0.563)   
+
+type_employment=1 ~=                       -0.954*  
+                                          (0.558)   
+
+type_employment=1 ~=                       -1.206** 
+                                          (0.560)   
+
+type_employment=1 ~=                       -1.375** 
+                                          (0.546)   
+
+type_employment=1 ~=                       -1.564***
+                                          (0.549)   
+
+type_employment=1 ~=                       -1.329** 
+                                          (0.558)   
+
+type_employment=1 ~=                       -1.190** 
+                                          (0.548)   
+
+Constant                    0.241***       -0.405   
+                          (0.083)         (0.527)   
+----------------------------------------------------
+Observations               101601          101601   
+----------------------------------------------------
+Standard errors in parentheses
+* p<0.10, ** p<0.05, *** p<0.01

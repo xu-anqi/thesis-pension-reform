@@ -1,0 +1,198 @@
+Results
+------------------------------------
+                              (1)   
+                       if_savings   
+------------------------------------
+if_savings                          
+female=0                    0.000   
+                              (.)   
+
+female=1                   -0.595   
+                          (0.455)   
+
+treated=0                   0.000   
+                              (.)   
+
+treated=1                   0.025   
+                          (0.264)   
+
+female=0 # treated=0        0.000   
+                              (.)   
+
+female=0 # treated=1        0.000   
+                              (.)   
+
+female=1 # treated=0        0.000   
+                              (.)   
+
+female=1 # treated=1        0.425   
+                          (0.466)   
+
+post=0                      0.000   
+                              (.)   
+
+post=1                      0.180   
+                          (0.328)   
+
+female=0 # post=0           0.000   
+                              (.)   
+
+female=0 # post=1           0.000   
+                              (.)   
+
+female=1 # post=0           0.000   
+                              (.)   
+
+female=1 # post=1           0.266   
+                          (0.574)   
+
+treated=0 # post=0          0.000   
+                              (.)   
+
+treated=0 # post=1          0.000   
+                              (.)   
+
+treated=1 # post=0          0.000   
+                              (.)   
+
+treated=1 # post=1         -0.123   
+                          (0.327)   
+
+female=0 # treated~0        0.000   
+                              (.)   
+
+female=0 # treated~1        0.000   
+                              (.)   
+
+female=0 # treated~0        0.000   
+                              (.)   
+
+female=0 # treated~1        0.000   
+                              (.)   
+
+female=1 # treated~0        0.000   
+                              (.)   
+
+female=1 # treated~1        0.000   
+                              (.)   
+
+female=1 # treated~0        0.000   
+                              (.)   
+
+female=1 # treated~1       -0.493   
+                          (0.599)   
+
+age                        -0.001   
+                          (0.007)   
+
+partner                     0.003   
+                          (0.125)   
+
+female_partner              0.218   
+                          (0.156)   
+
+east_germany               -0.044   
+                          (0.098)   
+
+Anzahl Kinder              -0.130** 
+                          (0.051)   
+
+Personen im Haushalt        0.121***
+                          (0.046)   
+
+Hauptschule                 0.000   
+                              (.)   
+
+Mittlere Reife              0.155   
+                          (0.107)   
+
+Polytechnic High S~l        0.137   
+                          (0.137)   
+
+university of appl~F       -0.048   
+                          (0.139)   
+
+Abitur                      0.126   
+                          (0.115)   
+
+currently_unemployed        0.004   
+                          (0.459)   
+
+no past unemployme~s        0.000   
+                              (.)   
+
+< 6 months                 -0.109   
+                          (0.083)   
+
+6 months to 2 years        -0.195*  
+                          (0.104)   
+
+more than 2 years          -0.704***
+                          (0.183)   
+
+s05                         0.111   
+                          (0.149)   
+
+s06                        -0.092   
+                          (0.108)   
+
+s07                        -0.137   
+                          (0.113)   
+
+s08                         0.076   
+                          (0.123)   
+
+Constant                    0.327   
+                          (0.381)   
+------------------------------------
+select                              
+na_era                     -0.443** 
+                          (0.188)   
+
+na_exp_econ                -2.240***
+                          (0.720)   
+
+na_exp_health               3.017** 
+                          (1.183)   
+
+na_exp_increase_in~e       -1.575** 
+                          (0.657)   
+
+na_exp_unemploy            -0.202   
+                          (0.441)   
+
+female                     -0.012   
+                          (0.103)   
+
+age                        -0.005   
+                          (0.008)   
+
+Hauptschule                 0.000   
+                              (.)   
+
+Mittlere Reife              0.200   
+                          (0.139)   
+
+Polytechnic High S~l        0.300*  
+                          (0.162)   
+
+university of appl~F        0.016   
+                          (0.176)   
+
+Abitur                      0.132   
+                          (0.142)   
+
+Constant                    1.446***
+                          (0.311)   
+------------------------------------
+/                                   
+athrho                     -1.058   
+                          (0.694)   
+------------------------------------
+Log-Likelihood           -1168.56   
+Wald chi2                   57.04   
+Rho                        -0.785   
+N                            1353   
+------------------------------------
+Standard errors in parentheses
+* p<0.10, ** p<0.05, *** p<0.01

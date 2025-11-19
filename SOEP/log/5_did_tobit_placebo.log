@@ -1,0 +1,708 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/5_did_tobit_pla
+> cebo.log
+  log type:  text
+ opened on:  26 May 2025, 09:00:56
+
+. 
+. ***********************************************
+. * Intensive Margin: log Savings
+. ***********************************************
+. use "${MY_DATA_OUT}data_head.dta", clear
+
+. label variable savings_amount "amount"
+
+. * drop obs with data quality issue
+. drop if if_savings == .
+(4,592 observations deleted)
+
+. drop if savings_amount == .
+(1,207 observations deleted)
+
+. 
+. /* 
+> * check
+> gen if_test = (savings_amount > 0)
+> tab if_test if_savings //checked
+> */
+. 
+. tab if_savings, m
+
+ if_savings |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     31,334       31.21       31.21
+          1 |     69,060       68.79      100.00
+------------+-----------------------------------
+      Total |    100,394      100.00
+
+. sum savings_amount,d
+
+                           amount
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             100,394
+25%            0              0       Sum of Wgt.     100,394
+
+50%          200                      Mean           423.0211
+                        Largest       Std. Dev.      1256.467
+75%     502.5126       96993.21
+90%     1037.344         100000       Variance        1578709
+95%     1587.302         120603       Skewness       49.08978
+99%     3191.489       152905.2       Kurtosis        4287.63
+
+. 
+. 
+. * Generate log savings - For TOBIT, log is not needed
+. * gen log = log(savings_amount)
+. 
+. * Generate Post-Reform Indicator
+. gen post = syear >= 2000
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. *** compositional change check
+. * 1. define cutoff year
+. local cutoff = 2000
+
+. 
+. * 2. Compute for each pid their first and last survey year
+. egen min_year = min(syear), by(pid)
+
+. egen max_year = max(syear), by(pid)
+
+. 
+. * 3. Create a compositional‐change indicator
+. gen byte comp_status = .
+(100,394 missing values generated)
+
+. replace comp_status = 1 if max_year <= `cutoff'-1   // only pre‐reform
+(1,354 real changes made)
+
+. replace comp_status = 2 if min_year >= `cutoff'    // only post‐reform
+(83,219 real changes made)
+
+. replace comp_status = 3 if max_year >= `cutoff' & min_year <= `cutoff'-1  /// both per
+> iods
+> 
+(15,821 real changes made)
+
+. * 4. Tabulate counts
+. tab comp_status,m
+
+comp_status |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      1,354        1.35        1.35
+          2 |     83,219       82.89       84.24
+          3 |     15,821       15.76      100.00
+------------+-----------------------------------
+      Total |    100,394      100.00
+
+. 
+. * 5. keep only balanced heads
+. keep if comp_status == 3
+(84,573 observations deleted)
+
+. 
+. 
+. *** Linear Probability Model (LPM)
+. 
+. tobit savings_amount interaction post type_employment, ll(0) vce(robust)
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -91880.358
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood = -91880.358  
+Iteration 1:   log pseudolikelihood = -90870.976  
+Iteration 2:   log pseudolikelihood = -90816.514  
+Iteration 3:   log pseudolikelihood = -90816.058  
+Iteration 4:   log pseudolikelihood = -90816.058  
+
+Tobit regression                                Number of obs     =     15,821
+                                                   Uncensored     =     11,154
+Limits: lower = 0                                  Left-censored  =      4,667
+        upper = +inf                               Right-censored =          0
+
+                                                F(   3,  15818)   =       5.74
+                                                Prob > F          =     0.0006
+Log pseudolikelihood = -90816.058               Pseudo R2         =     0.0001
+
+---------------------------------------------------------------------------------------
+                      |               Robust
+       savings_amount |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------------+----------------------------------------------------------------
+          interaction |  -72.33587   102.0159    -0.71   0.478    -272.2987     127.627
+                 post |   112.7225   101.5015     1.11   0.267    -86.23193     311.677
+      type_employment |    86.8051   74.69639     1.16   0.245    -59.60833    233.2185
+                _cons |   86.25503   74.31421     1.16   0.246    -59.40929    231.9193
+----------------------+----------------------------------------------------------------
+ var(e.savings_amount)|   345460.1   13417.92                      320135.6    372787.8
+---------------------------------------------------------------------------------------
+
+. estimates store lpm1
+
+. 
+. tobit savings_amount interaction post type_employment female age age_square i.migback 
+> ///
+>         hh_size nchild, ll(0) vce(robust)
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -90074.172
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood = -90074.172  
+Iteration 1:   log pseudolikelihood = -89073.429  
+Iteration 2:   log pseudolikelihood = -89016.208  
+Iteration 3:   log pseudolikelihood = -89015.723  
+Iteration 4:   log pseudolikelihood = -89015.723  
+
+Tobit regression                                Number of obs     =     15,532
+                                                   Uncensored     =     10,976
+Limits: lower = 0                                  Left-censored  =      4,556
+        upper = +inf                               Right-censored =          0
+
+                                                F(  10,  15522)   =      51.34
+                                                Prob > F          =     0.0000
+Log pseudolikelihood = -89015.723               Pseudo R2         =     0.0040
+
+---------------------------------------------------------------------------------------
+                      |               Robust
+       savings_amount |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------------+----------------------------------------------------------------
+          interaction |  -8.019891   111.2082    -0.07   0.943    -226.0009    209.9611
+                 post |  -18.42075   111.1557    -0.17   0.868    -236.2989    199.4574
+      type_employment |   60.72789   84.08845     0.72   0.470    -104.0953    225.5511
+               female |  -38.06292   10.10348    -3.77   0.000    -57.86692   -18.25891
+                  age |  -3.650774   5.911992    -0.62   0.537    -15.23897     7.93742
+           age_square |   .1522364   .0773981     1.97   0.049     .0005271    .3039456
+                      |
+              migback |
+                   2  |  -196.6157    15.3961   -12.77   0.000    -226.7938   -166.4375
+                   3  |   -47.0015   18.68522    -2.52   0.012    -83.62671   -10.37629
+                      |
+              hh_size |   106.3926   9.399526    11.32   0.000     87.96846    124.8168
+               nchild |  -176.2238    12.6304   -13.95   0.000    -200.9809   -151.4668
+                _cons |  -4.135293    137.095    -0.03   0.976    -272.8575    264.5869
+----------------------+----------------------------------------------------------------
+ var(e.savings_amount)|   331044.1   12928.93                      306647.6    357381.5
+---------------------------------------------------------------------------------------
+
+. estimates store lpm2
+
+. 
+. tobit savings_amount interaction post type_employment female age age_square i.migback 
+> ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, ll(0)
+>  vce(robust)
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -87968.085
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood = -87968.085  
+Iteration 1:   log pseudolikelihood = -86977.103  
+Iteration 2:   log pseudolikelihood = -86915.102  
+Iteration 3:   log pseudolikelihood = -86914.557  
+Iteration 4:   log pseudolikelihood = -86914.557  
+
+Tobit regression                                Number of obs     =     15,255
+                                                   Uncensored     =     10,796
+Limits: lower = 0                                  Left-censored  =      4,459
+        upper = +inf                               Right-censored =          0
+
+                                                F(  14,  15241)   =      75.90
+                                                Prob > F          =     0.0000
+Log pseudolikelihood = -86914.557               Pseudo R2         =     0.0111
+
+---------------------------------------------------------------------------------------
+                      |               Robust
+       savings_amount |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------------+----------------------------------------------------------------
+          interaction |   78.72582   125.7089     0.63   0.531    -167.6788    325.1304
+                 post |   -136.442   125.6894    -1.09   0.278    -382.8083    109.9244
+      type_employment |   109.7029   97.02121     1.13   0.258    -80.47032     299.876
+               female |  -9.850452   10.95885    -0.90   0.369    -31.33112    11.63021
+                  age |  -32.20358   5.851859    -5.50   0.000    -43.67392   -20.73323
+           age_square |   .3633577   .0753243     4.82   0.000     .2157129    .5110024
+                      |
+              migback |
+                   2  |  -75.85874   14.99426    -5.06   0.000    -105.2493    -46.4682
+                   3  |  -.3818205   18.64731    -0.02   0.984    -36.93277    36.16913
+                      |
+              hh_size |   124.4938   9.173069    13.57   0.000     106.5135    142.4741
+               nchild |  -163.4215   12.10112   -13.50   0.000    -187.1411   -139.7018
+            full_time |   46.74936   15.84394     2.95   0.003     15.69335    77.80538
+         years_employ |   11.22791   1.729289     6.49   0.000     7.838295    14.61752
+      education_years |   81.06237   2.951089    27.47   0.000     75.27788    86.84685
+    vocational_degree |   14.21021   13.82901     1.03   0.304     -12.8963    41.31672
+                _cons |  -580.5343   150.6807    -3.85   0.000    -875.8866    -285.182
+----------------------+----------------------------------------------------------------
+ var(e.savings_amount)|   301287.1   11843.05                      278945.1    325418.6
+---------------------------------------------------------------------------------------
+
+. estimates store lpm3
+
+. 
+. tobit savings_amount interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, ll(0) vce(cluster hid)
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -87927.823
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood = -87927.823  
+Iteration 1:   log pseudolikelihood = -86934.996  
+Iteration 2:   log pseudolikelihood =  -86872.41  
+Iteration 3:   log pseudolikelihood = -86871.855  
+Iteration 4:   log pseudolikelihood = -86871.854  
+
+Tobit regression                                Number of obs     =     15,255
+                                                   Uncensored     =     10,796
+Limits: lower = 0                                  Left-censored  =      4,459
+        upper = +inf                               Right-censored =          0
+
+                                                F(  43,  15212)   =       7.07
+                                                Prob > F          =     0.0000
+Log pseudolikelihood = -86871.854               Pseudo R2         =     0.0116
+
+                                         (Std. Err. adjusted for 1,286 clusters in hid)
+---------------------------------------------------------------------------------------
+                      |               Robust
+       savings_amount |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------------+----------------------------------------------------------------
+          interaction |   59.15261   144.5932     0.41   0.682    -224.2674    342.5727
+      type_employment |   117.7247   197.1354     0.60   0.550    -268.6844    504.1338
+               female |  -10.66871   26.96659    -0.40   0.692    -63.52645    42.18904
+                  age |   2.229458   13.31092     0.17   0.867    -23.86154    28.32045
+           age_square |  -.1301317   .2024751    -0.64   0.520    -.5270072    .2667438
+                      |
+              migback |
+                   2  |  -74.00434   35.39488    -2.09   0.037    -143.3826   -4.626132
+                   3  |   1.998447   46.52224     0.04   0.966    -89.19073    93.18762
+                      |
+              hh_size |   124.1568   17.14146     7.24   0.000     90.55752    157.7561
+               nchild |  -162.5084   20.82443    -7.80   0.000    -203.3268     -121.69
+            full_time |   47.00219   34.16289     1.38   0.169    -19.96118    113.9656
+         years_employ |   11.05473   4.358903     2.54   0.011     2.510754     19.5987
+      education_years |   81.02696   7.395862    10.96   0.000     66.53019    95.52374
+    vocational_degree |   15.61358   31.57834     0.49   0.621    -46.28374    77.51091
+                      |
+                syear |
+                1993  |   35.02767   46.74515     0.75   0.454    -56.59844    126.6538
+                1994  |    16.7897   46.80335     0.36   0.720    -74.95048    108.5299
+                1995  |  -52.42736   48.12144    -1.09   0.276    -146.7512    41.89643
+                1996  |  -70.70156   47.00825    -1.50   0.133    -162.8434    21.44025
+                1997  |  -77.52181   47.94006    -1.62   0.106    -171.4901    16.44646
+                1998  |   -136.168    47.7324    -2.85   0.004    -229.7292   -42.60679
+                1999  |  -129.8074   48.96002    -2.65   0.008    -225.7749   -33.83985
+                2000  |  -185.8273    152.924    -1.22   0.224    -485.5767     113.922
+                2001  |  -181.2475   153.2689    -1.18   0.237     -481.673    119.1779
+                2002  |  -217.6913   154.6998    -1.41   0.159    -520.9214     85.5389
+                2003  |  -224.6936   154.6804    -1.45   0.146    -527.8857    78.49862
+                2004  |  -238.1081    156.406    -1.52   0.128    -544.6825    68.46635
+                2005  |  -214.5598   157.0368    -1.37   0.172    -522.3708    93.25113
+                2006  |  -257.6079   157.5755    -1.63   0.102    -566.4747    51.25897
+                2007  |  -239.4042   158.8404    -1.51   0.132    -550.7504    71.94201
+                2008  |  -242.1929   160.0573    -1.51   0.130    -555.9244    71.53864
+                2009  |  -260.5169   160.6365    -1.62   0.105    -575.3836    54.34983
+                2010  |  -228.7864   162.2901    -1.41   0.159    -546.8944    89.32169
+                2011  |  -175.0456   164.3271    -1.07   0.287    -497.1465    147.0553
+                2012  |  -220.2088   167.7907    -1.31   0.189    -549.0987     108.681
+                2013  |  -198.7026   171.2242    -1.16   0.246    -534.3225    136.9173
+                2014  |   -141.229   174.7813    -0.81   0.419    -483.8212    201.3633
+                2015  |  -179.3559   176.1632    -1.02   0.309    -524.6569     165.945
+                2016  |  -172.9461   179.0447    -0.97   0.334    -523.8951     178.003
+                2017  |  -106.8923   184.7692    -0.58   0.563    -469.0621    255.2775
+                2018  |  -115.1526   185.1166    -0.62   0.534    -478.0033     247.698
+                2019  |  -102.8305    191.454    -0.54   0.591    -478.1034    272.4423
+                2020  |  -31.80115   196.9064    -0.16   0.872    -417.7612    354.1589
+                2021  |   58.65276   201.2496     0.29   0.771    -335.8206    453.1261
+                2022  |   12.87442   210.7538     0.06   0.951    -400.2284    425.9772
+                      |
+                _cons |  -1077.861    318.701    -3.38   0.001    -1702.553   -453.1689
+----------------------+----------------------------------------------------------------
+ var(e.savings_amount)|   299384.9   21549.66                      259989.4    344749.9
+---------------------------------------------------------------------------------------
+
+. estimates store lpm4
+
+. 
+. /* 
+> * No standard Tobit with FE
+> xtset hid syear
+> xtreg log interaction age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, fe
+> estimates store lpm5
+> */
+. 
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab lpm1 lpm2 lpm3 lpm4 using "${MY_OUTPUT_OUT}tobit_amount.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Tobit: Placebo Test on Amount Saved") ///
+>     label
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/tobit_amount.txt)
+
+. 
+. esttab lpm1 lpm2 lpm3 lpm4 using "${MY_OUTPUT_OUT}tobit_amount.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Tobit: Placebo Test on Amount Saved") ///
+>     label booktabs drop(*.syear)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/tobit_amount.tex)
+
+. 
+.         
+.         
+. 
+. 
+. 
+. ***********************************************
+. * Intensive Margin: saving rate
+. ***********************************************
+. 
+. /* check
+> tab household_income if household_income < 10, m
+> tab savings_amount if savings_amount < 10, m
+> tab household_income if household_income ==.
+> */
+. 
+. drop if household_income == 0
+(0 observations deleted)
+
+. drop if household_income == .
+(340 observations deleted)
+
+. 
+. gen rate = savings_amount/household_income
+
+. 
+. tab rate if rate>1
+no observations
+
+. drop if rate > 1
+(0 observations deleted)
+
+. sum rate, d
+
+                            rate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              15,481
+25%            0              0       Sum of Wgt.      15,481
+
+50%     .0674536                      Mean           .0943389
+                        Largest       Std. Dev.      .1051008
+75%     .1364504       .7407407
+90%     .2308155       .7454545       Variance       .0110462
+95%     .3078543       .8140063       Skewness       1.681723
+99%     .4651163       .8753056       Kurtosis        6.62142
+
+. 
+. 
+. 
+. *** Linear Probability Model (LPM)
+. /*
+> tobit savings_amount interaction post type_employment, ll(0) vce(robust)
+> estimates store lpm1
+> 
+> 
+> tobit savings_amount interaction post type_employment female age age_square i.migback 
+> ///
+>         hh_size nchild, ll(0) vce(robust)
+> estimates store lpm2
+> 
+> tobit savings_amount interaction post type_employment female age age_square i.migback 
+> ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, ll(0)
+>  vce(robust)
+> estimates store lpm3
+> */
+. 
+. 
+. tobit rate interaction post type_employment, ll(0) vce(robust)
+
+Refining starting values:
+
+Grid node 0:   log likelihood =  1239.7551
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood =  1239.7551  
+Iteration 1:   log pseudolikelihood =  2232.0383  
+Iteration 2:   log pseudolikelihood =  2282.2963  
+Iteration 3:   log pseudolikelihood =  2282.7535  
+Iteration 4:   log pseudolikelihood =  2282.7538  
+Iteration 5:   log pseudolikelihood =  2282.7538  
+
+Tobit regression                                Number of obs     =     15,481
+                                                   Uncensored     =     11,013
+Limits: lower = 0                                  Left-censored  =      4,468
+        upper = +inf                               Right-censored =          0
+
+                                                F(   3,  15478)   =      21.65
+                                                Prob > F          =     0.0000
+Log pseudolikelihood =  2282.7538               Pseudo R2         =    -0.0167
+
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0143767   .0247786    -0.58   0.562    -.0629456    .0341922
+           post |  -.0072705   .0246267    -0.30   0.768    -.0555417    .0410008
+type_employment |   .0304989   .0203894     1.50   0.135    -.0094667    .0704646
+          _cons |   .0543199   .0202471     2.68   0.007     .0146333    .0940065
+----------------+----------------------------------------------------------------
+     var(e.rate)|    .018741   .0003695                      .0180306    .0194793
+---------------------------------------------------------------------------------
+
+. estimates store lpm1
+
+. 
+. tobit rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, ll(0) vce(robust)
+
+Refining starting values:
+
+Grid node 0:   log likelihood =  1598.7781
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood =  1598.7781  
+Iteration 1:   log pseudolikelihood =  2580.8032  
+Iteration 2:   log pseudolikelihood =  2632.4629  
+Iteration 3:   log pseudolikelihood =  2632.9234  
+Iteration 4:   log pseudolikelihood =  2632.9237  
+Iteration 5:   log pseudolikelihood =  2632.9237  
+
+Tobit regression                                Number of obs     =     15,195
+                                                   Uncensored     =     10,835
+Limits: lower = 0                                  Left-censored  =      4,360
+        upper = +inf                               Right-censored =          0
+
+                                                F(  10,  15185)   =      67.51
+                                                Prob > F          =     0.0000
+Log pseudolikelihood =  2632.9237               Pseudo R2         =    -0.1586
+
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   .0076898   .0262268     0.29   0.769    -.0437178    .0590974
+           post |  -.0198305   .0261998    -0.76   0.449    -.0711852    .0315242
+type_employment |   .0153262   .0220995     0.69   0.488    -.0279915     .058644
+         female |  -.0119904    .002358    -5.09   0.000    -.0166124   -.0073685
+            age |  -.0053547   .0014771    -3.63   0.000      -.00825   -.0024594
+     age_square |    .000077   .0000187     4.12   0.000     .0000404    .0001136
+                |
+        migback |
+             2  |  -.0356742   .0038342    -9.30   0.000    -.0431898   -.0281586
+             3  |  -.0180708    .004328    -4.18   0.000    -.0265542   -.0095875
+                |
+        hh_size |  -.0005052   .0019131    -0.26   0.792     -.004255    .0032447
+         nchild |  -.0227003   .0024229    -9.37   0.000    -.0274495    -.017951
+          _cons |   .1820767   .0351487     5.18   0.000     .1131811    .2509723
+----------------+----------------------------------------------------------------
+     var(e.rate)|   .0178054   .0003577                      .0171179    .0185206
+---------------------------------------------------------------------------------
+
+. estimates store lpm2
+
+. 
+. tobit rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, ll(0)
+>  vce(robust)
+
+Refining starting values:
+
+Grid node 0:   log likelihood =   1996.054
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood =   1996.054  
+Iteration 1:   log pseudolikelihood =   2967.568  
+Iteration 2:   log pseudolikelihood =  3021.1058  
+Iteration 3:   log pseudolikelihood =  3021.5807  
+Iteration 4:   log pseudolikelihood =  3021.5811  
+Iteration 5:   log pseudolikelihood =  3021.5811  
+
+Tobit regression                                Number of obs     =     14,925
+                                                   Uncensored     =     10,659
+Limits: lower = 0                                  Left-censored  =      4,266
+        upper = +inf                               Right-censored =          0
+
+                                                F(  14,  14911)   =      99.00
+                                                Prob > F          =     0.0000
+Log pseudolikelihood =  3021.5811               Pseudo R2         =    -0.3190
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .0260431    .029046     0.90   0.370    -.0308907    .0829769
+             post |  -.0447723   .0290335    -1.54   0.123    -.1016815     .012137
+  type_employment |   .0220786   .0247274     0.89   0.372    -.0263901    .0705473
+           female |  -.0062909   .0026981    -2.33   0.020    -.0115796   -.0010022
+              age |  -.0104623   .0014946    -7.00   0.000     -.013392   -.0075327
+       age_square |    .000118   .0000185     6.36   0.000     .0000816    .0001543
+                  |
+          migback |
+               2  |  -.0129631   .0038685    -3.35   0.001    -.0205459   -.0053804
+               3  |   -.007814   .0043589    -1.79   0.073    -.0163579    .0007299
+                  |
+          hh_size |   .0029754    .001875     1.59   0.113    -.0006999    .0066507
+           nchild |  -.0204194   .0023488    -8.69   0.000    -.0250234   -.0158154
+        full_time |   .0095967   .0036553     2.63   0.009     .0024318    .0167616
+     years_employ |   .0017365   .0003921     4.43   0.000      .000968    .0025051
+  education_years |   .0147149   .0005638    26.10   0.000     .0136099      .01582
+vocational_degree |   .0063571   .0031732     2.00   0.045     .0001372     .012577
+            _cons |   .0730865   .0377529     1.94   0.053    -.0009139    .1470869
+------------------+----------------------------------------------------------------
+       var(e.rate)|   .0167493   .0003421                       .016092    .0174335
+-----------------------------------------------------------------------------------
+
+. estimates store lpm3
+
+. 
+. 
+. tobit rate interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, ll(0) vce(cluster hid)
+
+Refining starting values:
+
+Grid node 0:   log likelihood =  2038.4347
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood =  2038.4347  
+Iteration 1:   log pseudolikelihood =  3011.4882  
+Iteration 2:   log pseudolikelihood =  3065.3735  
+Iteration 3:   log pseudolikelihood =  3065.8538  
+Iteration 4:   log pseudolikelihood =  3065.8542  
+Iteration 5:   log pseudolikelihood =  3065.8542  
+
+Tobit regression                                Number of obs     =     14,925
+                                                   Uncensored     =     10,659
+Limits: lower = 0                                  Left-censored  =      4,266
+        upper = +inf                               Right-censored =          0
+
+                                                F(  43,  14882)   =       8.85
+                                                Prob > F          =     0.0000
+Log pseudolikelihood =  3065.8542               Pseudo R2         =    -0.3384
+
+                                     (Std. Err. adjusted for 1,284 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .0214771   .0377664     0.57   0.570    -.0525496    .0955039
+  type_employment |   .0245922   .0446704     0.55   0.582    -.0629672    .1121517
+           female |  -.0062609   .0064127    -0.98   0.329    -.0188305    .0063087
+              age |   -.002614   .0031605    -0.83   0.408    -.0088089     .003581
+       age_square |   8.93e-06   .0000436     0.20   0.838    -.0000766    .0000944
+                  |
+          migback |
+               2  |   -.012718   .0086656    -1.47   0.142    -.0297036    .0042676
+               3  |  -.0065591    .010575    -0.62   0.535    -.0272875    .0141692
+                  |
+          hh_size |   .0027544   .0035765     0.77   0.441    -.0042559    .0097647
+           nchild |  -.0198446   .0040072    -4.95   0.000    -.0276992     -.01199
+        full_time |   .0094789   .0072103     1.31   0.189    -.0046543     .023612
+     years_employ |   .0017213   .0009635     1.79   0.074    -.0001673    .0036099
+  education_years |   .0147247   .0014076    10.46   0.000     .0119656    .0174838
+vocational_degree |    .006829   .0068394     1.00   0.318     -.006577    .0202351
+                  |
+            syear |
+            1993  |   .0090016   .0143429     0.63   0.530    -.0191123    .0371155
+            1994  |   .0079655   .0144034     0.55   0.580    -.0202669    .0361978
+            1995  |  -.0111623   .0140437    -0.79   0.427    -.0386897    .0163652
+            1996  |  -.0172161   .0142652    -1.21   0.228    -.0451777    .0107455
+            1997  |  -.0185999   .0143115    -1.30   0.194    -.0466522    .0094523
+            1998  |  -.0316289   .0144485    -2.19   0.029    -.0599498   -.0033081
+            1999  |  -.0336919   .0145844    -2.31   0.021    -.0622791   -.0051046
+            2000  |  -.0550331   .0406316    -1.35   0.176     -.134676    .0246099
+            2001  |  -.0524077   .0409459    -1.28   0.201    -.1326667    .0278514
+            2002  |  -.0677636   .0410249    -1.65   0.099    -.1481775    .0126504
+            2003  |  -.0680724    .040963    -1.66   0.097    -.1483649    .0122202
+            2004  |  -.0727393   .0414434    -1.76   0.079    -.1539735    .0084949
+            2005  |   -.066112   .0416216    -1.59   0.112    -.1476955    .0154714
+            2006  |  -.0747075     .04162    -1.79   0.073    -.1562879    .0068728
+            2007  |  -.0716832   .0418843    -1.71   0.087    -.1537816    .0104152
+            2008  |  -.0721122   .0420731    -1.71   0.087    -.1545805    .0103562
+            2009  |  -.0756667   .0421514    -1.80   0.073    -.1582886    .0069552
+            2010  |  -.0695146    .042697    -1.63   0.104    -.1532061    .0141769
+            2011  |  -.0588398    .043119    -1.36   0.172    -.1433583    .0256787
+            2012  |  -.0714224   .0439066    -1.63   0.104    -.1574848    .0146399
+            2013  |  -.0627962   .0444111    -1.41   0.157    -.1498473     .024255
+            2014  |  -.0607145   .0447313    -1.36   0.175    -.1483934    .0269644
+            2015  |  -.0587749   .0451275    -1.30   0.193    -.1472303    .0296806
+            2016  |  -.0537023   .0456116    -1.18   0.239    -.1431067     .035702
+            2017  |  -.0445841   .0464407    -0.96   0.337    -.1356135    .0464454
+            2018  |  -.0432793   .0465349    -0.93   0.352    -.1344935     .047935
+            2019  |  -.0415116   .0478863    -0.87   0.386    -.1353747    .0523515
+            2020  |  -.0304253   .0489863    -0.62   0.535    -.1264445    .0655939
+            2021  |  -.0059776   .0498927    -0.12   0.905    -.1037735    .0918183
+            2022  |  -.0305695   .0509527    -0.60   0.549    -.1304432    .0693041
+                  |
+            _cons |  -.0431099   .0741501    -0.58   0.561    -.1884532    .1022334
+------------------+----------------------------------------------------------------
+       var(e.rate)|   .0166327   .0006795                      .0153528    .0180193
+-----------------------------------------------------------------------------------
+
+. estimates store lpm4
+
+. 
+. /*
+> xtset hid syear
+> xtreg rate interaction age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree
+> estimates store lpm5
+> */
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab lpm1 lpm2 lpm3 lpm4 using "${MY_OUTPUT_OUT}tobit_rate.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Tobit: Placebo Test on Saving Rate") ///
+>     label
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/tobit_rate.txt)
+
+. 
+. esttab lpm1 lpm2 lpm3 lpm4 using "${MY_OUTPUT_OUT}tobit_rate.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Tobit: Placebo Test on Saving Rate") ///
+>     label booktabs drop(*.syear)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/tobit_rate.tex)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/5_did_tobit_pla
+> cebo.log
+  log type:  text
+ closed on:  26 May 2025, 09:01:08
+----------------------------------------------------------------------------------------

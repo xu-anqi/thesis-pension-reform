@@ -1,0 +1,63 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Extensive Margin: Effect of the 2006 Pension Reform on Savings (Probit) 06 cut-off}
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}\\
+                    &\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}\\
+\midrule
+if\_savings          &                     &                     &                     &                     \\
+interaction         &       0.009         &      -0.058         &      -0.018         &      -0.021         \\
+                    &     (0.163)         &     (0.163)         &     (0.169)         &     (0.169)         \\
+\addlinespace
+post                &       0.024         &       0.101         &       0.043         &                     \\
+                    &     (0.161)         &     (0.162)         &     (0.168)         &                     \\
+\addlinespace
+type\_employment     &       0.133         &       0.205         &       0.277\sym{*}  &       0.276\sym{*}  \\
+                    &     (0.149)         &     (0.150)         &     (0.145)         &     (0.145)         \\
+\addlinespace
+female              &                     &      -0.104\sym{**} &      -0.057         &      -0.058         \\
+                    &                     &     (0.046)         &     (0.052)         &     (0.052)         \\
+\addlinespace
+age                 &                     &       0.144\sym{***}&       0.042         &       0.058         \\
+                    &                     &     (0.038)         &     (0.040)         &     (0.041)         \\
+\addlinespace
+age\_square          &                     &      -0.002\sym{***}&      -0.001         &      -0.001\sym{**} \\
+                    &                     &     (0.001)         &     (0.001)         &     (0.001)         \\
+\addlinespace
+1                   &                     &       0.000         &       0.000         &       0.000         \\
+                    &                     &         (.)         &         (.)         &         (.)         \\
+\addlinespace
+2                   &                     &      -0.511\sym{***}&      -0.259\sym{***}&      -0.257\sym{***}\\
+                    &                     &     (0.073)         &     (0.073)         &     (0.073)         \\
+\addlinespace
+3                   &                     &      -0.192\sym{**} &      -0.074         &      -0.080         \\
+                    &                     &     (0.084)         &     (0.086)         &     (0.086)         \\
+\addlinespace
+Current Household Size&                     &       0.110\sym{***}&       0.136\sym{***}&       0.135\sym{***}\\
+                    &                     &     (0.037)         &     (0.037)         &     (0.037)         \\
+\addlinespace
+nchild              &                     &      -0.217\sym{***}&      -0.194\sym{***}&      -0.192\sym{***}\\
+                    &                     &     (0.045)         &     (0.045)         &     (0.045)         \\
+\addlinespace
+full\_time           &                     &                     &       0.183\sym{***}&       0.184\sym{***}\\
+                    &                     &                     &     (0.063)         &     (0.063)         \\
+\addlinespace
+years\_employ        &                     &                     &       0.020\sym{**} &       0.020\sym{**} \\
+                    &                     &                     &     (0.008)         &     (0.008)         \\
+\addlinespace
+education\_years     &                     &                     &       0.156\sym{***}&       0.156\sym{***}\\
+                    &                     &                     &     (0.011)         &     (0.011)         \\
+\addlinespace
+vocational\_degree   &                     &                     &       0.248\sym{***}&       0.248\sym{***}\\
+                    &                     &                     &     (0.059)         &     (0.059)         \\
+\addlinespace
+Constant            &       0.355\sym{**} &      -2.098\sym{***}&      -2.782\sym{***}&      -3.001\sym{***}\\
+                    &     (0.146)         &     (0.671)         &     (0.706)         &     (0.719)         \\
+\midrule
+Observations        &       12401         &       12397         &       12272         &       12272         \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize Standard errors in parentheses}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<0.10\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

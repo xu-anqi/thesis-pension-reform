@@ -1,0 +1,466 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/5_did_exten_pla
+> cebo.log
+  log type:  text
+ opened on:  26 May 2025, 08:24:41
+
+. 
+. 
+. ***********************************************
+. * Extensive Margin: If Savings
+. ***********************************************
+. use "${OUT_DATA}data_head.dta", clear
+
+. 
+. * Generate Post-Reform Indicator
+. gen post = syear >= 2000
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. 
+. 
+. *** compositional change check
+. * 1. define cutoff year
+. local cutoff = 2000
+
+. 
+. * 2. Compute for each pid their first and last survey year
+. egen min_year = min(syear), by(pid)
+
+. egen max_year = max(syear), by(pid)
+
+. 
+. * 3. Create a compositional‐change indicator
+. gen byte comp_status = .
+(106,193 missing values generated)
+
+. replace comp_status = 1 if max_year <= `cutoff'-1   // only pre‐reform
+(1,402 real changes made)
+
+. replace comp_status = 2 if min_year >= `cutoff'    // only post‐reform
+(88,452 real changes made)
+
+. replace comp_status = 3 if max_year >= `cutoff' & min_year <= `cutoff'-1  /// both per
+> iods
+> 
+(16,339 real changes made)
+
+. * 4. Tabulate counts
+. tab comp_status,m
+
+comp_status |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      1,402        1.32        1.32
+          2 |     88,452       83.29       84.61
+          3 |     16,339       15.39      100.00
+------------+-----------------------------------
+      Total |    106,193      100.00
+
+. 
+. * 5. keep only balanced heads
+. keep if comp_status == 3
+(89,854 observations deleted)
+
+. 
+. 
+. 
+. 
+.         
+.         
+.         
+. *** Logit Model
+. logit if_savings interaction post type_employment, robust
+
+Iteration 0:   log pseudolikelihood = -9725.4456  
+Iteration 1:   log pseudolikelihood = -9719.5067  
+Iteration 2:   log pseudolikelihood = -9719.4961  
+Iteration 3:   log pseudolikelihood = -9719.4961  
+
+Logistic regression                             Number of obs     =     16,177
+                                                Wald chi2(3)      =      12.06
+                                                Prob > chi2       =     0.0072
+Log pseudolikelihood = -9719.4961               Pseudo R2         =     0.0006
+
+---------------------------------------------------------------------------------
+                |               Robust
+     if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.1801753   .3044331    -0.59   0.554    -.7768531    .4165025
+           post |   .2921364   .3019869     0.97   0.333    -.2997471      .88402
+type_employment |    .354159    .257013     1.38   0.168    -.1495773    .8578953
+          _cons |   .4700036   .2549589     1.84   0.065    -.0297065    .9697138
+---------------------------------------------------------------------------------
+
+. estimates store logit1
+
+. margins, dydx(interaction)
+
+Average marginal effects                        Number of obs     =     16,177
+Model VCE    : Robust
+
+Expression   : Pr(if_savings), predict()
+dy/dx w.r.t. : interaction
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ interaction |  -.0369891    .062496    -0.59   0.554    -.1594791    .0855009
+------------------------------------------------------------------------------
+
+. 
+. logit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, robust
+
+Iteration 0:   log pseudolikelihood = -9525.4655  
+Iteration 1:   log pseudolikelihood = -9288.4895  
+Iteration 2:   log pseudolikelihood = -9285.5575  
+Iteration 3:   log pseudolikelihood = -9285.5564  
+Iteration 4:   log pseudolikelihood = -9285.5564  
+
+Logistic regression                             Number of obs     =     15,884
+                                                Wald chi2(10)     =     443.72
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -9285.5564               Pseudo R2         =     0.0252
+
+---------------------------------------------------------------------------------
+                |               Robust
+     if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   .0072158   .3340703     0.02   0.983      -.64755    .6619817
+           post |   .0247116   .3330234     0.07   0.941    -.6280023    .6774256
+type_employment |   .2794537   .2899305     0.96   0.335    -.2887997    .8477071
+         female |  -.1170226   .0369845    -3.16   0.002    -.1895109   -.0445343
+            age |  -.0515809   .0237404    -2.17   0.030    -.0981112   -.0050507
+     age_square |    .000958   .0003068     3.12   0.002     .0003568    .0015593
+                |
+        migback |
+             2  |  -.6348575   .0527565   -12.03   0.000    -.7382583   -.5314566
+             3  |  -.2769377   .0649357    -4.26   0.000    -.4042094    -.149666
+                |
+        hh_size |   .1099688   .0366664     3.00   0.003     .0381039    .1818336
+         nchild |  -.3368797   .0457757    -7.36   0.000    -.4265985   -.2471609
+          _cons |    1.33616   .5271982     2.53   0.011     .3028708     2.36945
+---------------------------------------------------------------------------------
+
+. estimates store logit2
+
+. 
+. logit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, robus
+> t
+
+Iteration 0:   log pseudolikelihood = -9343.1321  
+Iteration 1:   log pseudolikelihood = -8849.7291  
+Iteration 2:   log pseudolikelihood = -8835.3779  
+Iteration 3:   log pseudolikelihood = -8835.3292  
+Iteration 4:   log pseudolikelihood = -8835.3292  
+
+Logistic regression                             Number of obs     =     15,606
+                                                Wald chi2(14)     =     855.43
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -8835.3292               Pseudo R2         =     0.0544
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .1126093   .3789802     0.30   0.766    -.6301781    .8553968
+             post |  -.1698443   .3780884    -0.45   0.653     -.910884    .5711953
+  type_employment |   .4708477   .3344586     1.41   0.159    -.1846791    1.126374
+           female |   .0102985   .0445415     0.23   0.817    -.0770011    .0975982
+              age |  -.1232751   .0252863    -4.88   0.000    -.1728354   -.0737147
+       age_square |   .0014923    .000318     4.69   0.000      .000869    .0021156
+                  |
+          migback |
+               2  |  -.3538821   .0554589    -6.38   0.000    -.4625796   -.2451846
+               3  |  -.1572736   .0700058    -2.25   0.025    -.2944825   -.0200648
+                  |
+          hh_size |   .1526481   .0362654     4.21   0.000     .0815692    .2237271
+           nchild |   -.292287   .0452088    -6.47   0.000    -.3808946   -.2036795
+        full_time |   .2518428   .0607407     4.15   0.000     .1327933    .3708923
+     years_employ |   .0296381    .006739     4.40   0.000       .01643    .0428463
+  education_years |   .2224581   .0110144    20.20   0.000     .2008702    .2440459
+vocational_degree |   .0429885   .0518681     0.83   0.407    -.0586712    .1446481
+            _cons |  -.5278309   .5822171    -0.91   0.365    -1.668956    .6132937
+-----------------------------------------------------------------------------------
+
+. estimates store logit3
+
+. 
+. logit if_savings interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, robust
+
+Iteration 0:   log pseudolikelihood = -9343.1321  
+Iteration 1:   log pseudolikelihood = -8826.7036  
+Iteration 2:   log pseudolikelihood = -8810.3259  
+Iteration 3:   log pseudolikelihood = -8810.2627  
+Iteration 4:   log pseudolikelihood = -8810.2626  
+
+Logistic regression                             Number of obs     =     15,606
+                                                Wald chi2(43)     =     885.52
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -8810.2626               Pseudo R2         =     0.0570
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .0632806   .3775608     0.17   0.867    -.6767251    .8032862
+  type_employment |   .4896932   .3311349     1.48   0.139    -.1593194    1.138706
+           female |   .0058171   .0448854     0.13   0.897    -.0821567     .093791
+              age |  -.0303213   .0311105    -0.97   0.330    -.0912967    .0306542
+       age_square |   .0001139   .0004277     0.27   0.790    -.0007243    .0009522
+                  |
+          migback |
+               2  |  -.3464904   .0556601    -6.23   0.000    -.4555822   -.2373985
+               3  |  -.1580867   .0709212    -2.23   0.026    -.2970897   -.0190837
+                  |
+          hh_size |   .1504745   .0364176     4.13   0.000     .0790974    .2218516
+           nchild |  -.2895633   .0454807    -6.37   0.000    -.3787039   -.2004226
+        full_time |   .2537748   .0609214     4.17   0.000     .1343711    .3731785
+     years_employ |   .0296574   .0067916     4.37   0.000     .0163461    .0429687
+  education_years |   .2232345   .0110373    20.23   0.000     .2016018    .2448673
+vocational_degree |   .0481918   .0520061     0.93   0.354    -.0537383     .150122
+                  |
+            syear |
+            1993  |   .2251944   .2485639     0.91   0.365    -.2619818    .7123707
+            1994  |   .2133105   .2362656     0.90   0.367    -.2497616    .6763826
+            1995  |  -.0950469   .2106766    -0.45   0.652    -.5079654    .3178715
+            1996  |  -.0994525   .2088243    -0.48   0.634    -.5087406    .3098355
+            1997  |  -.0989492   .2070397    -0.48   0.633    -.5047396    .3068412
+            1998  |  -.2323213   .2022934    -1.15   0.251     -.628809    .1641665
+            1999  |  -.1664912    .200735    -0.83   0.407    -.5599245    .2269421
+            2000  |  -.1742582   .4218878    -0.41   0.680    -1.001143    .6526267
+            2001  |  -.1092717   .4232923    -0.26   0.796    -.9389093     .720366
+            2002  |  -.2819366   .4243115    -0.66   0.506    -1.113572    .5496987
+            2003  |  -.2703453   .4251091    -0.64   0.525    -1.103544    .5628532
+            2004  |  -.3210021   .4261588    -0.75   0.451    -1.156258    .5142538
+            2005  |  -.3462996   .4275488    -0.81   0.418     -1.18428    .4916807
+            2006  |  -.4650662   .4287099    -1.08   0.278    -1.305322    .3751898
+            2007  |  -.3418272   .4305241    -0.79   0.427    -1.185639    .5019845
+            2008  |  -.2471085   .4317973    -0.57   0.567    -1.093416    .5991986
+            2009  |  -.3284652    .433251    -0.76   0.448    -1.177622    .5206911
+            2010  |  -.2021238   .4364704    -0.46   0.643     -1.05759    .6533424
+            2011  |  -.1016876   .4382335    -0.23   0.817    -.9606094    .7572342
+            2012  |  -.2365054   .4402393    -0.54   0.591    -1.099359    .6263476
+            2013  |   -.188477   .4435522    -0.42   0.671    -1.057823    .6808694
+            2014  |  -.0252153   .4486414    -0.06   0.955    -.9045364    .8541058
+            2015  |   .0211824   .4518178     0.05   0.963    -.8643641    .9067289
+            2016  |  -.1445093   .4550245    -0.32   0.751    -1.036341    .7473225
+            2017  |   .1165645   .4619484     0.25   0.801    -.7888377    1.021967
+            2018  |   .2178512   .4679386     0.47   0.642    -.6992916    1.134994
+            2019  |   .1421803   .4748134     0.30   0.765    -.7884369    1.072797
+            2020  |   .1563489   .4836864     0.32   0.747     -.791659    1.104357
+            2021  |   .9700672   .5551515     1.75   0.081    -.1180097    2.058144
+            2022  |   .2117173   .5168991     0.41   0.682    -.8013862    1.224821
+                  |
+            _cons |  -1.961793   .6569275    -2.99   0.003    -3.249348    -.674239
+-----------------------------------------------------------------------------------
+
+. estimates store logit4
+
+. 
+. *** add household fe
+. xtset hid syear
+       panel variable:  hid (unbalanced)
+        time variable:  syear, 1992 to 2022, but with gaps
+                delta:  1 unit
+
+. xtlogit if_savings interaction post age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, fe
+note: multiple positive outcomes within groups encountered.
+note: 455 groups (4,132 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood = -4546.5176  
+Iteration 1:   log likelihood = -4537.2437  
+Iteration 2:   log likelihood = -4537.2371  
+Iteration 3:   log likelihood = -4537.2371  
+
+Conditional fixed-effects logistic regression   Number of obs     =     11,474
+Group variable: hid                             Number of groups  =        839
+
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =       13.7
+                                                              max =         31
+
+                                                LR chi2(10)       =      83.96
+Log likelihood  = -4537.2371                    Prob > chi2       =     0.0000
+
+-----------------------------------------------------------------------------------
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   1.139611   .4790993     2.38   0.017     .2005934    2.078628
+             post |   -1.14589   .4779553    -2.40   0.017    -2.082665   -.2091146
+              age |  -.1297915   .0439039    -2.96   0.003    -.2158416   -.0437414
+       age_square |   .0011219   .0005002     2.24   0.025     .0001415    .0021024
+          hh_size |   .1485021   .0556634     2.67   0.008     .0394039    .2576004
+           nchild |  -.2312267   .0578638    -4.00   0.000    -.3446377   -.1178157
+        full_time |   .3428011   .1054725     3.25   0.001     .1360788    .5495234
+     years_employ |   .0571313   .0215244     2.65   0.008     .0149443    .0993183
+  education_years |   .1649499    .059565     2.77   0.006     .0482046    .2816952
+vocational_degree |  -.2030835   .1810422    -1.12   0.262    -.5579197    .1517527
+-----------------------------------------------------------------------------------
+
+. estimates store logit5
+
+. 
+. *** add household and year fe
+. xtset hid syear
+       panel variable:  hid (unbalanced)
+        time variable:  syear, 1992 to 2022, but with gaps
+                delta:  1 unit
+
+. xtlogit if_savings interaction age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, fe
+note: multiple positive outcomes within groups encountered.
+note: 455 groups (4,132 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood =  -4506.923  
+Iteration 1:   log likelihood = -4491.7878  
+Iteration 2:   log likelihood = -4491.7695  
+Iteration 3:   log likelihood = -4491.7695  
+
+Conditional fixed-effects logistic regression   Number of obs     =     11,474
+Group variable: hid                             Number of groups  =        839
+
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =       13.7
+                                                              max =         31
+
+                                                LR chi2(39)       =     174.89
+Log likelihood  = -4491.7695                    Prob > chi2       =     0.0000
+
+-----------------------------------------------------------------------------------
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   1.157555     .48645     2.38   0.017     .2041304    2.110979
+              age |  -.1127693   .2487109    -0.45   0.650    -.6002338    .3746951
+       age_square |  -.0019557   .0006604    -2.96   0.003    -.0032501   -.0006613
+          hh_size |   .1232969   .0562017     2.19   0.028     .0131436    .2334502
+           nchild |  -.2208289   .0584287    -3.78   0.000    -.3353471   -.1063107
+        full_time |    .333233    .106736     3.12   0.002     .1240342    .5424317
+     years_employ |   .0577732   .0217816     2.65   0.008     .0150821    .1004644
+  education_years |   .1420871   .0603266     2.36   0.019     .0238492     .260325
+vocational_degree |  -.1296125    .182834    -0.71   0.478    -.4879605    .2287355
+                  |
+            syear |
+            1993  |   .3177868   .3991073     0.80   0.426     -.464449    1.100023
+            1994  |   .4730577   .5719194     0.83   0.408    -.6478837    1.593999
+            1995  |   .4470179    .785146     0.57   0.569     -1.09184    1.985876
+            1996  |   .5750281   1.015599     0.57   0.571     -1.41551    2.565566
+            1997  |   .7507337   1.256018     0.60   0.550    -1.711017    3.212485
+            1998  |   .7756167   1.495942     0.52   0.604    -2.156375    3.707609
+            1999  |   1.116583   1.734629     0.64   0.520    -2.283228    4.516395
+            2000  |   .2924905   2.005128     0.15   0.884    -3.637488    4.222469
+            2001  |   .6206646   2.242583     0.28   0.782    -3.774718    5.016047
+            2002  |   .4636084   2.481796     0.19   0.852    -4.400623     5.32784
+            2003  |   .6444108   2.721638     0.24   0.813    -4.689902    5.978724
+            2004  |   .7657302   2.962502     0.26   0.796    -5.040666    6.572127
+            2005  |   .8848132   3.204403     0.28   0.782    -5.395701    7.165327
+            2006  |   .8777038   3.446257     0.25   0.799    -5.876836    7.632244
+            2007  |   1.196181   3.688826     0.32   0.746    -6.033785    8.426148
+            2008  |   1.564344   3.931482     0.40   0.691    -6.141218    9.269907
+            2009  |   1.636187    4.17477     0.39   0.695    -6.546211    9.818586
+            2010  |   2.025017    4.41825     0.46   0.647    -6.634594    10.68463
+            2011  |   2.458405   4.662243     0.53   0.598    -6.679422    11.59623
+            2012  |   2.477067   4.906201     0.50   0.614     -7.13891    12.09304
+            2013  |   2.776488   5.150544     0.54   0.590    -7.318393    12.87137
+            2014  |    3.23253   5.395029     0.60   0.549    -7.341534    13.80659
+            2015  |   3.557403   5.639983     0.63   0.528     -7.49676    14.61157
+            2016  |   3.609475   5.884473     0.61   0.540     -7.92388    15.14283
+            2017  |    4.25022    6.13131     0.69   0.488    -7.766926    16.26737
+            2018  |    4.55869   6.376301     0.71   0.475    -7.938631    17.05601
+            2019  |   4.644789   6.621947     0.70   0.483    -8.333989    17.62357
+            2020  |   4.819742   6.867927     0.70   0.483    -8.641148    18.28063
+            2021  |   5.959178   7.117499     0.84   0.402    -7.990863    19.90922
+            2022  |   5.297525   7.359504     0.72   0.472    -9.126839    19.72189
+-----------------------------------------------------------------------------------
+
+. estimates store logit6
+
+. 
+. 
+. * Display Results Side-by-Side
+. esttab logit1 logit2 logit3 logit4 logit5 logit6 using "${OUT_OUTPUT}did_if_savings_lo
+> git.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Placebo Test") ///
+>     label
+(note: file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_placebo/did
+> _if_savings_logit.txt not found)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/did_if_savings_logit.txt)
+
+. 
+. esttab logit1 logit2 logit3 logit4 logit5 logit6 using "${OUT_OUTPUT}did_if_savings_lo
+> git.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Placebo Test") ///
+>     label booktabs drop(*.syear)
+(note: file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_placebo/did
+> _if_savings_logit.tex not found)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/did_if_savings_logit.tex)
+
+. /*
+> *** Probit Model
+> //probit if_savings interaction post type_employment, robust
+> //estimates store probit
+> probit if_savings interaction post type_employment, robust
+> estimates store probit1
+> margins, dydx(interaction)
+> 
+> 
+> probit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, robust
+> estimates store probit2
+> 
+> probit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, robus
+> t
+> estimates store probit3
+> 
+> probit if_savings interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, robust
+> estimates store probit4
+> 
+> /* fixed effect fails for probit model
+> xtprobit if_savings interaction nchild full_time years_employ education_years ///
+>         vocational_degree, fe
+> estimates store probit5
+> */
+> 
+> * Display Results Side-by-Side
+> esttab probit1 probit2 probit3 probit4 using "${OUT_OUTPUT}did_if_savings_probit.txt",
+>  ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Effect of the 2006 Pension Reform on Savings (Probit)") /
+> //
+>     label
+> 
+> esttab probit1 probit2 probit3 probit4 using "${OUT_OUTPUT}did_if_savings_probit.tex",
+>  ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Effect of the 2006 Pension Reform on Savings (Probit)") /
+> //
+>     label booktabs drop(*.syear)
+> */
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/5_did_exten_pla
+> cebo.log
+  log type:  text
+ closed on:  26 May 2025, 08:25:09
+----------------------------------------------------------------------------------------

@@ -1,0 +1,63 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Extensive Margin: Placebo Test}
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}&\multicolumn{1}{c}{(5)}&\multicolumn{1}{c}{(6)}\\
+                    &\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}\\
+\midrule
+if\_savings          &                     &                     &                     &                     &                     &                     \\
+interaction         &      -0.180         &       0.007         &       0.113         &       0.063         &       1.140\sym{**} &       1.158\sym{**} \\
+                    &     (0.304)         &     (0.334)         &     (0.379)         &     (0.378)         &     (0.479)         &     (0.486)         \\
+\addlinespace
+post                &       0.292         &       0.025         &      -0.170         &                     &      -1.146\sym{**} &                     \\
+                    &     (0.302)         &     (0.333)         &     (0.378)         &                     &     (0.478)         &                     \\
+\addlinespace
+type\_employment     &       0.354         &       0.279         &       0.471         &       0.490         &                     &                     \\
+                    &     (0.257)         &     (0.290)         &     (0.334)         &     (0.331)         &                     &                     \\
+\addlinespace
+female              &                     &      -0.117\sym{***}&       0.010         &       0.006         &                     &                     \\
+                    &                     &     (0.037)         &     (0.045)         &     (0.045)         &                     &                     \\
+\addlinespace
+age                 &                     &      -0.052\sym{**} &      -0.123\sym{***}&      -0.030         &      -0.130\sym{***}&      -0.113         \\
+                    &                     &     (0.024)         &     (0.025)         &     (0.031)         &     (0.044)         &     (0.249)         \\
+\addlinespace
+age\_square          &                     &       0.001\sym{***}&       0.001\sym{***}&       0.000         &       0.001\sym{**} &      -0.002\sym{***}\\
+                    &                     &     (0.000)         &     (0.000)         &     (0.000)         &     (0.001)         &     (0.001)         \\
+\addlinespace
+1                   &                     &       0.000         &       0.000         &       0.000         &                     &                     \\
+                    &                     &         (.)         &         (.)         &         (.)         &                     &                     \\
+\addlinespace
+2                   &                     &      -0.635\sym{***}&      -0.354\sym{***}&      -0.346\sym{***}&                     &                     \\
+                    &                     &     (0.053)         &     (0.055)         &     (0.056)         &                     &                     \\
+\addlinespace
+3                   &                     &      -0.277\sym{***}&      -0.157\sym{**} &      -0.158\sym{**} &                     &                     \\
+                    &                     &     (0.065)         &     (0.070)         &     (0.071)         &                     &                     \\
+\addlinespace
+Current Household Size&                     &       0.110\sym{***}&       0.153\sym{***}&       0.150\sym{***}&       0.149\sym{***}&       0.123\sym{**} \\
+                    &                     &     (0.037)         &     (0.036)         &     (0.036)         &     (0.056)         &     (0.056)         \\
+\addlinespace
+nchild              &                     &      -0.337\sym{***}&      -0.292\sym{***}&      -0.290\sym{***}&      -0.231\sym{***}&      -0.221\sym{***}\\
+                    &                     &     (0.046)         &     (0.045)         &     (0.045)         &     (0.058)         &     (0.058)         \\
+\addlinespace
+full\_time           &                     &                     &       0.252\sym{***}&       0.254\sym{***}&       0.343\sym{***}&       0.333\sym{***}\\
+                    &                     &                     &     (0.061)         &     (0.061)         &     (0.105)         &     (0.107)         \\
+\addlinespace
+years\_employ        &                     &                     &       0.030\sym{***}&       0.030\sym{***}&       0.057\sym{***}&       0.058\sym{***}\\
+                    &                     &                     &     (0.007)         &     (0.007)         &     (0.022)         &     (0.022)         \\
+\addlinespace
+education\_years     &                     &                     &       0.222\sym{***}&       0.223\sym{***}&       0.165\sym{***}&       0.142\sym{**} \\
+                    &                     &                     &     (0.011)         &     (0.011)         &     (0.060)         &     (0.060)         \\
+\addlinespace
+vocational\_degree   &                     &                     &       0.043         &       0.048         &      -0.203         &      -0.130         \\
+                    &                     &                     &     (0.052)         &     (0.052)         &     (0.181)         &     (0.183)         \\
+\addlinespace
+Constant            &       0.470\sym{*}  &       1.336\sym{**} &      -0.528         &      -1.962\sym{***}&                     &                     \\
+                    &     (0.255)         &     (0.527)         &     (0.582)         &     (0.657)         &                     &                     \\
+\midrule
+Observations        &       16177         &       15884         &       15606         &       15606         &       11474         &       11474         \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize Standard errors in parentheses}\\
+\multicolumn{7}{l}{\footnotesize \sym{*} \(p<0.10\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

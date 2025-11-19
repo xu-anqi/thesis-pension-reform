@@ -1,0 +1,67 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Tobit: Placebo Test on Amount Saved}
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}\\
+                    &\multicolumn{1}{c}{amount}&\multicolumn{1}{c}{amount}&\multicolumn{1}{c}{amount}&\multicolumn{1}{c}{amount}\\
+\midrule
+amount              &                     &                     &                     &                     \\
+interaction         &     -72.336         &      -8.020         &      78.726         &      59.153         \\
+                    &   (102.016)         &   (111.208)         &   (125.709)         &   (144.593)         \\
+\addlinespace
+post                &     112.723         &     -18.421         &    -136.442         &                     \\
+                    &   (101.501)         &   (111.156)         &   (125.689)         &                     \\
+\addlinespace
+type\_employment     &      86.805         &      60.728         &     109.703         &     117.725         \\
+                    &    (74.696)         &    (84.088)         &    (97.021)         &   (197.135)         \\
+\addlinespace
+female              &                     &     -38.063\sym{***}&      -9.850         &     -10.669         \\
+                    &                     &    (10.103)         &    (10.959)         &    (26.967)         \\
+\addlinespace
+age                 &                     &      -3.651         &     -32.204\sym{***}&       2.229         \\
+                    &                     &     (5.912)         &     (5.852)         &    (13.311)         \\
+\addlinespace
+age\_square          &                     &       0.152\sym{**} &       0.363\sym{***}&      -0.130         \\
+                    &                     &     (0.077)         &     (0.075)         &     (0.202)         \\
+\addlinespace
+1                   &                     &       0.000         &       0.000         &       0.000         \\
+                    &                     &         (.)         &         (.)         &         (.)         \\
+\addlinespace
+2                   &                     &    -196.616\sym{***}&     -75.859\sym{***}&     -74.004\sym{**} \\
+                    &                     &    (15.396)         &    (14.994)         &    (35.395)         \\
+\addlinespace
+3                   &                     &     -47.002\sym{**} &      -0.382         &       1.998         \\
+                    &                     &    (18.685)         &    (18.647)         &    (46.522)         \\
+\addlinespace
+Current Household Size&                     &     106.393\sym{***}&     124.494\sym{***}&     124.157\sym{***}\\
+                    &                     &     (9.400)         &     (9.173)         &    (17.141)         \\
+\addlinespace
+nchild              &                     &    -176.224\sym{***}&    -163.421\sym{***}&    -162.508\sym{***}\\
+                    &                     &    (12.630)         &    (12.101)         &    (20.824)         \\
+\addlinespace
+full\_time           &                     &                     &      46.749\sym{***}&      47.002         \\
+                    &                     &                     &    (15.844)         &    (34.163)         \\
+\addlinespace
+years\_employ        &                     &                     &      11.228\sym{***}&      11.055\sym{**} \\
+                    &                     &                     &     (1.729)         &     (4.359)         \\
+\addlinespace
+education\_years     &                     &                     &      81.062\sym{***}&      81.027\sym{***}\\
+                    &                     &                     &     (2.951)         &     (7.396)         \\
+\addlinespace
+vocational\_degree   &                     &                     &      14.210         &      15.614         \\
+                    &                     &                     &    (13.829)         &    (31.578)         \\
+\addlinespace
+Constant            &      86.255         &      -4.135         &    -580.534\sym{***}&   -1077.861\sym{***}\\
+                    &    (74.314)         &   (137.095)         &   (150.681)         &   (318.701)         \\
+\midrule
+/                   &                     &                     &                     &                     \\
+var(e.savings\_amount)&  345460.051\sym{***}&  331044.054\sym{***}&  301287.124\sym{***}&  299384.910\sym{***}\\
+                    & (13417.916)         & (12928.926)         & (11843.048)         & (21549.663)         \\
+\midrule
+Observations        &       15821         &       15532         &       15255         &       15255         \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize Standard errors in parentheses}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<0.10\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

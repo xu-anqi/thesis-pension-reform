@@ -1,0 +1,834 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/5_did_PPML_plac
+> ebo.log
+  log type:  text
+ opened on:  26 May 2025, 08:44:13
+
+. 
+. ***********************************************
+. * Intensive Margin: log Savings
+. ***********************************************
+. use "${MY_DATA_OUT}data_head.dta", clear
+
+. label variable savings_amount "amount"
+
+. 
+. * drop obs with data quality issue
+. drop if if_savings == .
+(4,592 observations deleted)
+
+. drop if savings_amount == .
+(1,207 observations deleted)
+
+. 
+. /* 
+> * check
+> gen if_test = (savings_amount > 0)
+> tab if_test if_savings //checked
+> */
+. 
+. tab if_savings, m
+
+ if_savings |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     31,334       31.21       31.21
+          1 |     69,060       68.79      100.00
+------------+-----------------------------------
+      Total |    100,394      100.00
+
+. sum savings_amount,d
+
+                           amount
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs             100,394
+25%            0              0       Sum of Wgt.     100,394
+
+50%          200                      Mean           423.0211
+                        Largest       Std. Dev.      1256.467
+75%     502.5126       96993.21
+90%     1037.344         100000       Variance        1578709
+95%     1587.302         120603       Skewness       49.08978
+99%     3191.489       152905.2       Kurtosis        4287.63
+
+. 
+. 
+. * Generate log savings - For TOBIT, log is not needed
+. * gen log = log(savings_amount)
+. 
+. * Generate Post-Reform Indicator
+. gen post = syear >= 2000
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. *** compositional change check
+. * 1. define cutoff year
+. local cutoff = 2000
+
+. 
+. * 2. Compute for each pid their first and last survey year
+. egen min_year = min(syear), by(pid)
+
+. egen max_year = max(syear), by(pid)
+
+. 
+. * 3. Create a compositional‐change indicator
+. gen byte comp_status = .
+(100,394 missing values generated)
+
+. replace comp_status = 1 if max_year <= `cutoff'-1   // only pre‐reform
+(1,354 real changes made)
+
+. replace comp_status = 2 if min_year >= `cutoff'    // only post‐reform
+(83,219 real changes made)
+
+. replace comp_status = 3 if max_year >= `cutoff' & min_year <= `cutoff'-1  /// both per
+> iods
+> 
+(15,821 real changes made)
+
+. * 4. Tabulate counts
+. tab comp_status,m
+
+comp_status |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      1,354        1.35        1.35
+          2 |     83,219       82.89       84.24
+          3 |     15,821       15.76      100.00
+------------+-----------------------------------
+      Total |    100,394      100.00
+
+. 
+. * 5. keep only balanced heads
+. keep if comp_status == 3
+(84,573 observations deleted)
+
+. 
+. 
+. 
+. *** Linear Probability Model (LPM)
+. * Declare the panel
+. 
+. poisson savings_amount interaction post type_employment, vce(robust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -3777352.6  
+Iteration 1:   log pseudolikelihood = -3777352.6  
+
+Poisson regression                              Number of obs     =     15,821
+                                                Wald chi2(3)      =      15.78
+                                                Prob > chi2       =     0.0013
+Log pseudolikelihood = -3777352.6               Pseudo R2         =     0.0012
+
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.2082222   .2221637    -0.94   0.349    -.6436551    .2272107
+           post |   .2967196   .2208937     1.34   0.179     -.136224    .7296632
+type_employment |   .1321148   .1656482     0.80   0.425    -.1925498    .4567793
+          _cons |    5.57313   .1645099    33.88   0.000     5.250696    5.895563
+---------------------------------------------------------------------------------
+
+. estimates store lpm1
+
+. 
+. poisson savings_amount interaction post type_employment female age age_square i.migbac
+> k ///
+>         hh_size nchild, vce(robust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -3532252.6  
+Iteration 1:   log pseudolikelihood = -3532240.1  
+Iteration 2:   log pseudolikelihood = -3532240.1  
+
+Poisson regression                              Number of obs     =     15,532
+                                                Wald chi2(10)     =     688.67
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -3532240.1               Pseudo R2         =     0.0517
+
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   -.086034   .2423095    -0.36   0.723    -.5609519    .3888838
+           post |  -.0015497   .2424082    -0.01   0.995    -.4766611    .4735617
+type_employment |   .0914877   .1850095     0.49   0.621    -.2711242    .4540996
+         female |  -.0839239   .0234032    -3.59   0.000    -.1297933   -.0380545
+            age |   .0099015   .0129557     0.76   0.445    -.0154912    .0352943
+     age_square |   .0000795    .000167     0.48   0.634    -.0002479    .0004068
+                |
+        migback |
+             2  |  -.4351251   .0390402   -11.15   0.000    -.5116425   -.3586077
+             3  |   -.058476   .0432538    -1.35   0.176    -.1432519    .0262999
+                |
+        hh_size |   .2344346   .0156671    14.96   0.000     .2037277    .2651415
+         nchild |  -.3662744   .0208635   -17.56   0.000    -.4071661   -.3253827
+          _cons |   5.022778   .2991854    16.79   0.000     4.436386    5.609171
+---------------------------------------------------------------------------------
+
+. estimates store lpm2
+
+. 
+. poisson savings_amount interaction post type_employment female age age_square i.migbac
+> k ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, vce(r
+> obust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -3142341.4  
+Iteration 1:   log pseudolikelihood = -3142271.2  
+Iteration 2:   log pseudolikelihood = -3142271.2  
+
+Poisson regression                              Number of obs     =     15,255
+                                                Wald chi2(14)     =    1763.40
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -3142271.2               Pseudo R2         =     0.1412
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+   savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .1094959   .2711859     0.40   0.686    -.4220186    .6410104
+             post |  -.2566605   .2711332    -0.95   0.344    -.7880719    .2747509
+  type_employment |   .2213397   .2082935     1.06   0.288    -.1869081    .6295875
+           female |  -.0297218   .0251251    -1.18   0.237    -.0789661    .0195225
+              age |  -.0537577   .0126166    -4.26   0.000    -.0784858   -.0290296
+       age_square |   .0005524   .0001602     3.45   0.001     .0002384    .0008665
+                  |
+          migback |
+               2  |  -.1573916   .0392231    -4.01   0.000    -.2342674   -.0805157
+               3  |   .0228386    .042561     0.54   0.592    -.0605794    .1062567
+                  |
+          hh_size |   .2826047   .0156714    18.03   0.000     .2518894      .31332
+           nchild |  -.3548966    .020144   -17.62   0.000    -.3943781   -.3154151
+        full_time |   .0639247   .0367988     1.74   0.082    -.0081996    .1360489
+     years_employ |   .0246286   .0039879     6.18   0.000     .0168125    .0324447
+  education_years |   .1640465   .0052075    31.50   0.000     .1538399     .174253
+vocational_degree |    .073871   .0313158     2.36   0.018     .0124932    .1352487
+            _cons |   3.849622   .3259964    11.81   0.000     3.210681    4.488564
+-----------------------------------------------------------------------------------
+
+. estimates store lpm3
+
+. 
+. poisson savings_amount interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree ///
+>         i.syear, vce(robust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -3121260.7  
+Iteration 1:   log pseudolikelihood = -3121144.1  
+Iteration 2:   log pseudolikelihood = -3121144.1  
+
+Poisson regression                              Number of obs     =     15,255
+                                                Wald chi2(43)     =    1938.68
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -3121144.1               Pseudo R2         =     0.1469
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+   savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .0727233   .2689334     0.27   0.787    -.4543764     .599823
+  type_employment |   .2334839   .2053099     1.14   0.255    -.1689161    .6358838
+           female |  -.0297533   .0254247    -1.17   0.242    -.0795848    .0200782
+              age |   .0176128   .0158352     1.11   0.266    -.0134235    .0486492
+       age_square |   -.000442   .0002169    -2.04   0.042    -.0008672   -.0000168
+                  |
+          migback |
+               2  |  -.1535835   .0390895    -3.93   0.000    -.2301975   -.0769695
+               3  |   .0306052   .0423191     0.72   0.470    -.0523387    .1135491
+                  |
+          hh_size |   .2816689   .0156233    18.03   0.000     .2510478      .31229
+           nchild |  -.3526183   .0202135   -17.44   0.000     -.392236   -.3130006
+        full_time |   .0665236   .0366669     1.81   0.070    -.0053421    .1383893
+     years_employ |    .023955   .0039114     6.12   0.000     .0162889    .0316212
+  education_years |   .1637406    .005186    31.57   0.000     .1535761     .173905
+vocational_degree |   .0751955   .0313069     2.40   0.016      .013835    .1365559
+                  |
+            syear |
+            1993  |    .039526   .1217185     0.32   0.745    -.1990379    .2780899
+            1994  |  -.0136689   .1090048    -0.13   0.900    -.2273143    .1999765
+            1995  |  -.1348522   .1052708    -1.28   0.200    -.3411791    .0714747
+            1996  |  -.1830006   .1043957    -1.75   0.080    -.3876124    .0216112
+            1997  |  -.2078271    .102484    -2.03   0.043     -.408692   -.0069622
+            1998  |   -.348843   .1007572    -3.46   0.001    -.5463235   -.1513624
+            1999  |  -.3481137   .0991125    -3.51   0.000    -.5423706   -.1538567
+            2000  |  -.4172229   .2868434    -1.45   0.146    -.9794256    .1449798
+            2001  |  -.4183662   .2838694    -1.47   0.141      -.97474    .1380076
+            2002  |  -.4757517   .2848899    -1.67   0.095    -1.034126    .0826223
+            2003  |  -.4996524   .2861412    -1.75   0.081    -1.060479    .0611742
+            2004  |   -.529958   .2868509    -1.85   0.065    -1.092175    .0322593
+            2005  |  -.4525635    .287078    -1.58   0.115    -1.015226    .1100991
+            2006  |  -.5468625    .293291    -1.86   0.062    -1.121702    .0279772
+            2007  |  -.5335629   .2883537    -1.85   0.064    -1.098726       .0316
+            2008  |  -.5642015   .2914182    -1.94   0.053    -1.135371    .0069677
+            2009  |  -.5942327   .2914022    -2.04   0.041    -1.165371   -.0230948
+            2010  |  -.5320025   .2919216    -1.82   0.068    -1.104158    .0401534
+            2011  |  -.4021295   .2924439    -1.38   0.169     -.975309      .17105
+            2012  |  -.4970503   .2929161    -1.70   0.090    -1.071155    .0770547
+            2013  |  -.4477096   .2933991    -1.53   0.127    -1.022761     .127342
+            2014  |  -.3275649   .2968485    -1.10   0.270    -.9093772    .2542475
+            2015  |  -.4379068   .2947129    -1.49   0.137    -1.015533    .1397198
+            2016  |   -.394812   .2960413    -1.33   0.182    -.9750423    .1854182
+            2017  |  -.2845583    .301573    -0.94   0.345    -.8756306     .306514
+            2018  |  -.3285315   .3018689    -1.09   0.276    -.9201836    .2631206
+            2019  |   -.284382   .3017499    -0.94   0.346    -.8758009    .3070369
+            2020  |  -.1507174   .3042466    -0.50   0.620    -.7470297    .4455949
+            2021  |  -.0501119   .3091206    -0.16   0.871    -.6559771    .5557534
+            2022  |  -.0496726   .3121956    -0.16   0.874    -.6615647    .5622195
+                  |
+            _cons |   2.848796   .3579908     7.96   0.000     2.147147    3.550445
+-----------------------------------------------------------------------------------
+
+. estimates store lpm4
+
+. 
+. xtset hid syear
+       panel variable:  hid (unbalanced)
+        time variable:  syear, 1992 to 2022, but with gaps
+                delta:  1 unit
+
+. xtpoisson savings_amount interaction post age age_square  ///
+>         hh_size nchild full_time years_employ education_years ///
+>         ,  fe vce(robust)
+note: you are responsible for interpretation of non-count dep. variable
+note: 48 groups (48 obs) dropped because of only one obs per group
+note: 87 groups (517 obs) dropped because of all zero outcomes
+
+Iteration 0:   log pseudolikelihood = -1650397.2  
+Iteration 1:   log pseudolikelihood = -1576101.8  
+Iteration 2:   log pseudolikelihood = -1575531.8  
+Iteration 3:   log pseudolikelihood = -1575531.8  
+
+Conditional fixed-effects Poisson regression    Number of obs     =     14,721
+Group variable: hid                             Number of groups  =      1,154
+
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =       12.8
+                                                              max =         31
+
+                                                Wald chi2(9)      =     117.66
+Log pseudolikelihood  = -1575531.8              Prob > chi2       =     0.0000
+
+                                       (Std. Err. adjusted for clustering on hid)
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.1627032   .1987291    -0.82   0.413    -.5522052    .2267987
+           post |   .0909364   .2013616     0.45   0.652    -.3037251    .4855978
+            age |  -.0452534   .0281051    -1.61   0.107    -.1003384    .0098316
+     age_square |    .000678   .0002991     2.27   0.023     .0000919    .0012642
+        hh_size |   .1882694   .0407966     4.61   0.000     .1083095    .2682292
+         nchild |  -.2446628   .0371862    -6.58   0.000    -.3175465   -.1717791
+      full_time |   .2071077   .0717479     2.89   0.004     .0664844     .347731
+   years_employ |   .0098246   .0173715     0.57   0.572     -.024223    .0438722
+education_years |    .092085   .0308192     2.99   0.003     .0316804    .1524896
+---------------------------------------------------------------------------------
+
+. estimates store lpm5
+
+. 
+. xtpoisson savings_amount interaction  ///
+>         hh_size nchild full_time years_employ education_years ///
+>         i.syear,  fe vce(robus)
+note: you are responsible for interpretation of non-count dep. variable
+note: 48 groups (48 obs) dropped because of only one obs per group
+note: 87 groups (517 obs) dropped because of all zero outcomes
+
+Iteration 0:   log pseudolikelihood = -1650397.2  
+Iteration 1:   log pseudolikelihood = -1562481.8  
+Iteration 2:   log pseudolikelihood =   -1560462  
+Iteration 3:   log pseudolikelihood = -1560458.1  
+Iteration 4:   log pseudolikelihood = -1560458.1  
+
+Conditional fixed-effects Poisson regression    Number of obs     =     14,721
+Group variable: hid                             Number of groups  =      1,154
+
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =       12.8
+                                                              max =         31
+
+                                                Wald chi2(36)     =     214.86
+Log pseudolikelihood  = -1560458.1              Prob > chi2       =     0.0000
+
+                                       (Std. Err. adjusted for clustering on hid)
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.2201736   .1992928    -1.10   0.269    -.6107803    .1704331
+        hh_size |   .1936969   .0406081     4.77   0.000     .1141065    .2732873
+         nchild |  -.2345317   .0376587    -6.23   0.000    -.3083414    -.160722
+      full_time |   .2056226   .0703127     2.92   0.003     .0678123    .3434328
+   years_employ |   .0091134   .0171851     0.53   0.596    -.0245687    .0427955
+education_years |   .0849905   .0302178     2.81   0.005     .0257647    .1442163
+                |
+          syear |
+          1993  |  -.1386854   .0993976    -1.40   0.163    -.3335012    .0561304
+          1994  |   -.096322   .0942755    -1.02   0.307    -.2810985    .0884546
+          1995  |  -.1286261   .1048591    -1.23   0.220    -.3341461    .0768938
+          1996  |  -.1820507   .1074903    -1.69   0.090    -.3927278    .0286263
+          1997  |  -.1944331   .1169573    -1.66   0.096    -.4236653     .034799
+          1998  |  -.3118236   .1248516    -2.50   0.013    -.5565284   -.0671189
+          1999  |  -.2954494   .1380813    -2.14   0.032    -.5660838    -.024815
+          2000  |  -.0441383   .2499883    -0.18   0.860    -.5341064    .4458298
+          2001  |  -.0296013   .2590319    -0.11   0.909    -.5372945    .4780919
+          2002  |  -.0797699   .2703127    -0.30   0.768     -.609573    .4500332
+          2003  |  -.1011158   .2803321    -0.36   0.718    -.6505565     .448325
+          2004  |  -.1269287   .2914054    -0.44   0.663    -.6980728    .4442153
+          2005  |  -.0413365   .3018846    -0.14   0.891    -.6330196    .5503465
+          2006  |  -.1322947   .3137568    -0.42   0.673    -.7472469    .4826574
+          2007  |  -.1243398   .3268391    -0.38   0.704    -.7649325     .516253
+          2008  |  -.1339963   .3408883    -0.39   0.694     -.802125    .5341325
+          2009  |  -.1881413   .3531187    -0.53   0.594    -.8802411    .5039586
+          2010  |  -.1365677   .3709155    -0.37   0.713    -.8635487    .5904133
+          2011  |   .0477451   .3790544     0.13   0.900    -.6951878     .790678
+          2012  |  -.0787101   .3934583    -0.20   0.841    -.8498743     .692454
+          2013  |  -.0542458   .4074113    -0.13   0.894    -.8527573    .7442656
+          2014  |   .0626741   .4240304     0.15   0.882    -.7684102    .8937583
+          2015  |  -.0389044    .439432    -0.09   0.929    -.9001752    .8223665
+          2016  |    .003496   .4480358     0.01   0.994    -.8746381      .88163
+          2017  |   .1182366    .475735     0.25   0.804    -.8141868     1.05066
+          2018  |   .0820427   .4813387     0.17   0.865    -.8613638    1.025449
+          2019  |   .1249035   .4946521     0.25   0.801    -.8445967    1.094404
+          2020  |   .2582744   .5089787     0.51   0.612    -.7393056    1.255854
+          2021  |   .3669343   .5363374     0.68   0.494    -.6842676    1.418136
+          2022  |   .2676042   .5429974     0.49   0.622    -.7966512     1.33186
+---------------------------------------------------------------------------------
+
+. estimates store lpm6
+
+. 
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}ppml_amount.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Placebo Test on Amount Saved") ///
+>     label
+(note: file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_placebo/ppm
+> l_amount.txt not found)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/ppml_amount.txt)
+
+. 
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}ppml_amount.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Placebo Test on Amount Saved") ///
+>     label booktabs drop(*.syear)
+(note: file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_placebo/ppm
+> l_amount.tex not found)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/ppml_amount.tex)
+
+. 
+.         
+.         
+. 
+. 
+. 
+. ***********************************************
+. * Intensive Margin: saving rate
+. ***********************************************
+. 
+. /* check
+> tab household_income if household_income < 10, m
+> tab savings_amount if savings_amount < 10, m
+> tab household_income if household_income ==.
+> */
+. 
+. drop if household_income == 0
+(0 observations deleted)
+
+. drop if household_income == .
+(340 observations deleted)
+
+. 
+. gen rate = savings_amount/household_income
+
+. 
+. tab rate if rate>1
+no observations
+
+. drop if rate > 1
+(0 observations deleted)
+
+. sum rate, d
+
+                            rate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              15,481
+25%            0              0       Sum of Wgt.      15,481
+
+50%     .0674536                      Mean           .0943389
+                        Largest       Std. Dev.      .1051008
+75%     .1364504       .7407407
+90%     .2308155       .7454545       Variance       .0110462
+95%     .3078543       .8140063       Skewness       1.681723
+99%     .4651163       .8753056       Kurtosis        6.62142
+
+. 
+. 
+. 
+. *** Linear Probability Model (LPM)
+. /*
+> tobit savings_amount interaction post type_employment, ll(0) vce(robust)
+> estimates store lpm1
+> 
+> 
+> tobit savings_amount interaction post type_employment female age age_square i.migback 
+> ///
+>         hh_size nchild, ll(0) vce(robust)
+> estimates store lpm2
+> 
+> tobit savings_amount interaction post type_employment female age age_square i.migback 
+> ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, ll(0)
+>  vce(robust)
+> estimates store lpm3
+> */
+. 
+. 
+. poisson rate interaction post type_employment,  vce(robust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood =   -4281.86  
+Iteration 1:   log pseudolikelihood =   -4281.86  
+
+Poisson regression                              Number of obs     =     15,481
+                                                Wald chi2(3)      =     128.33
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood =   -4281.86               Pseudo R2         =     0.0018
+
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.1180499   .1942549    -0.61   0.543    -.4987824    .2626826
+           post |  -.1041038   .1932507    -0.54   0.590    -.4828681    .2746606
+type_employment |   .2018338   .1501197     1.34   0.179    -.0923954    .4960631
+          _cons |  -2.407299   .1491901   -16.14   0.000    -2.699706   -2.114892
+---------------------------------------------------------------------------------
+
+. estimates store lpm1
+
+. 
+. poisson rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, vce(robust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -4165.8559  
+Iteration 1:   log pseudolikelihood = -4165.8556  
+
+Poisson regression                              Number of obs     =     15,195
+                                                Wald chi2(10)     =     674.59
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -4165.8556               Pseudo R2         =     0.0102
+
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   .0583791   .2014487     0.29   0.772     -.336453    .4532113
+           post |  -.1724423   .2014496    -0.86   0.392    -.5672763    .2223917
+type_employment |   .0822305   .1588462     0.52   0.605    -.2291024    .3935633
+         female |  -.0984042   .0184488    -5.33   0.000    -.1345631   -.0622453
+            age |  -.0391085   .0105613    -3.70   0.000    -.0598083   -.0184086
+     age_square |   .0005314   .0001347     3.94   0.000     .0002673    .0007955
+                |
+        migback |
+             2  |  -.2332695   .0336873    -6.92   0.000    -.2992954   -.1672436
+             3  |  -.1296535   .0351007    -3.69   0.000    -.1984497   -.0608573
+                |
+        hh_size |   -.013607   .0133485    -1.02   0.308    -.0397695    .0125556
+         nchild |  -.1920099    .018063   -10.63   0.000    -.2274127    -.156607
+          _cons |  -1.431192   .2507031    -5.71   0.000    -1.922561    -.939823
+---------------------------------------------------------------------------------
+
+. estimates store lpm2
+
+. 
+. poisson rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, vce(r
+> obust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -4053.1069  
+Iteration 1:   log pseudolikelihood = -4053.1061  
+Iteration 2:   log pseudolikelihood = -4053.1061  
+
+Poisson regression                              Number of obs     =     14,925
+                                                Wald chi2(14)     =    1533.02
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -4053.1061               Pseudo R2         =     0.0187
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .1744958    .221225     0.79   0.430    -.2590973    .6080889
+             post |  -.3309518   .2212543    -1.50   0.135    -.7646023    .1026987
+  type_employment |   .1463528     .17652     0.83   0.407    -.1996201    .4923257
+           female |  -.0654968   .0202711    -3.23   0.001    -.1052275   -.0257661
+              age |  -.0791177   .0106696    -7.42   0.000    -.1000298   -.0582056
+       age_square |   .0008634   .0001336     6.46   0.000     .0006016    .0011252
+                  |
+          migback |
+               2  |  -.0649154   .0342236    -1.90   0.058    -.1319925    .0021617
+               3  |  -.0580746   .0350745    -1.66   0.098    -.1268194    .0106702
+                  |
+          hh_size |   .0112447   .0134226     0.84   0.402    -.0150631    .0375525
+           nchild |  -.1743943   .0178291    -9.78   0.000    -.2093387   -.1394499
+        full_time |   .0676428   .0298153     2.27   0.023     .0092059    .1260797
+     years_employ |   .0129181   .0032044     4.03   0.000     .0066375    .0191986
+  education_years |   .1027813   .0040033    25.67   0.000      .094935    .1106277
+vocational_degree |   .0671968   .0247544     2.71   0.007     .0186789    .1157146
+            _cons |   -2.17411   .2704488    -8.04   0.000     -2.70418    -1.64404
+-----------------------------------------------------------------------------------
+
+. estimates store lpm3
+
+. 
+. poisson rate interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree ///
+>         i.syear, vce(robust)
+note: you are responsible for interpretation of noncount dep. variable
+
+Iteration 0:   log pseudolikelihood = -4048.6909  
+Iteration 1:   log pseudolikelihood = -4048.6899  
+Iteration 2:   log pseudolikelihood = -4048.6899  
+
+Poisson regression                              Number of obs     =     14,925
+                                                Wald chi2(43)     =    1639.40
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -4048.6899               Pseudo R2         =     0.0197
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |    .142469   .2182433     0.65   0.514      -.28528     .570218
+  type_employment |   .1646759   .1726262     0.95   0.340    -.1736652     .503017
+           female |  -.0621131   .0204384    -3.04   0.002    -.1021717   -.0220545
+              age |  -.0226575   .0132943    -1.70   0.088    -.0487139    .0033989
+       age_square |   .0000893   .0001796     0.50   0.619    -.0002627    .0004414
+                  |
+          migback |
+               2  |  -.0657224   .0341653    -1.92   0.054    -.1326852    .0012403
+               3  |  -.0441958   .0350139    -1.26   0.207    -.1128219    .0244302
+                  |
+          hh_size |   .0094438    .013387     0.71   0.481    -.0167943    .0356819
+           nchild |  -.1684118   .0178466    -9.44   0.000    -.2033905    -.133433
+        full_time |   .0657549   .0298726     2.20   0.028     .0072057    .1243041
+     years_employ |   .0128589   .0031743     4.05   0.000     .0066374    .0190803
+  education_years |   .1026365   .0039945    25.69   0.000     .0948075    .1104654
+vocational_degree |   .0712832   .0247316     2.88   0.004     .0228101    .1197563
+                  |
+            syear |
+            1993  |   .0386682   .1066765     0.36   0.717    -.1704139    .2477503
+            1994  |   .0243861   .0972439     0.25   0.802    -.1662083    .2149806
+            1995  |  -.0640495   .0918907    -0.70   0.486     -.244152    .1160529
+            1996  |  -.1129831   .0918235    -1.23   0.219    -.2929539    .0669876
+            1997  |  -.1237532   .0898629    -1.38   0.168    -.2998813    .0523749
+            1998  |  -.2200581   .0886357    -2.48   0.013    -.3937809   -.0463353
+            1999  |   -.249662   .0873646    -2.86   0.004    -.4208934   -.0784307
+            2000  |  -.3969612   .2347325    -1.69   0.091    -.8570285    .0631062
+            2001  |  -.3779848    .234038    -1.62   0.106    -.8366908    .0807212
+            2002  |  -.4909106   .2343696    -2.09   0.036    -.9502666   -.0315545
+            2003  |  -.5000011   .2358854    -2.12   0.034     -.962328   -.0376743
+            2004  |  -.5393052   .2354911    -2.29   0.022    -1.000859   -.0777511
+            2005  |  -.4663561   .2366821    -1.97   0.049    -.9302444   -.0024678
+            2006  |  -.5356668   .2379223    -2.25   0.024    -1.001986   -.0693475
+            2007  |   -.528041   .2369921    -2.23   0.026     -.992537   -.0635451
+            2008  |  -.5504312   .2381328    -2.31   0.021    -1.017163   -.0836994
+            2009  |  -.5799742   .2388889    -2.43   0.015    -1.048188   -.1117605
+            2010  |  -.5437053   .2390403    -2.27   0.023    -1.012216   -.0751949
+            2011  |  -.4437667   .2392706    -1.85   0.064    -.9127285     .025195
+            2012  |  -.5546148   .2402784    -2.31   0.021    -1.025552   -.0836777
+            2013  |   -.474085   .2412996    -1.96   0.049    -.9470235   -.0011465
+            2014  |   -.469907   .2425992    -1.94   0.053    -.9453927    .0055787
+            2015  |  -.4686756   .2428809    -1.93   0.054    -.9447134    .0073622
+            2016  |  -.3986808   .2436684    -1.64   0.102    -.8762622    .0789005
+            2017  |  -.3446124   .2453161    -1.40   0.160    -.8254232    .1361984
+            2018  |  -.3457262   .2518736    -1.37   0.170    -.8393894     .147937
+            2019  |  -.3190263   .2487754    -1.28   0.200    -.8066172    .1685646
+            2020  |    -.22468   .2512625    -0.89   0.371    -.7171455    .2677854
+            2021  |   -.091488    .254334    -0.36   0.719    -.5899734    .4069974
+            2022  |  -.2199827   .2583741    -0.85   0.395    -.7263865    .2864212
+                  |
+            _cons |   -3.02288   .3027598    -9.98   0.000    -3.616278   -2.429482
+-----------------------------------------------------------------------------------
+
+. estimates store lpm4
+
+. 
+. xtset hid syear
+       panel variable:  hid (unbalanced)
+        time variable:  syear, 1992 to 2022, but with gaps
+                delta:  1 unit
+
+. xtpoisson rate interaction post age age_square  ///
+>         hh_size nchild full_time years_employ education_years ///
+>         ,  fe vce(robust)
+note: you are responsible for interpretation of non-count dep. variable
+note: 50 groups (50 obs) dropped because of only one obs per group
+note: 86 groups (487 obs) dropped because of all zero outcomes
+
+Iteration 0:   log pseudolikelihood = -2671.5854  
+Iteration 1:   log pseudolikelihood = -2654.5255  
+Iteration 2:   log pseudolikelihood = -2654.4981  
+Iteration 3:   log pseudolikelihood = -2654.4981  
+
+Conditional fixed-effects Poisson regression    Number of obs     =     14,419
+Group variable: hid                             Number of groups  =      1,151
+
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =       12.5
+                                                              max =         31
+
+                                                Wald chi2(9)      =     150.17
+Log pseudolikelihood  = -2654.4981              Prob > chi2       =     0.0000
+
+                                       (Std. Err. adjusted for clustering on hid)
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0485758   .2394151    -0.20   0.839    -.5178208    .4206692
+           post |  -.0430351   .2405239    -0.18   0.858    -.5144532    .4283831
+            age |  -.0827678   .0212899    -3.89   0.000    -.1244953   -.0410402
+     age_square |   .0009097   .0002271     4.01   0.000     .0004646    .0013549
+        hh_size |  -.0352734   .0308641    -1.14   0.253     -.095766    .0252191
+         nchild |   -.104341   .0310981    -3.36   0.001    -.1652922   -.0433898
+      full_time |   .0761274   .0506303     1.50   0.133    -.0231062    .1753609
+   years_employ |   .0108067   .0138562     0.78   0.435     -.016351    .0379644
+education_years |   .0641689   .0272851     2.35   0.019     .0106911    .1176466
+---------------------------------------------------------------------------------
+
+. estimates store lpm5
+
+. 
+. xtpoisson rate interaction  ///
+>         hh_size nchild full_time years_employ education_years ///
+>         i.syear,  fe vce(robus)
+note: you are responsible for interpretation of non-count dep. variable
+note: 50 groups (50 obs) dropped because of only one obs per group
+note: 86 groups (487 obs) dropped because of all zero outcomes
+
+Iteration 0:   log pseudolikelihood = -2671.5854  
+Iteration 1:   log pseudolikelihood = -2650.7692  
+Iteration 2:   log pseudolikelihood = -2650.6833  
+Iteration 3:   log pseudolikelihood = -2650.6833  
+
+Conditional fixed-effects Poisson regression    Number of obs     =     14,419
+Group variable: hid                             Number of groups  =      1,151
+
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =       12.5
+                                                              max =         31
+
+                                                Wald chi2(36)     =     259.38
+Log pseudolikelihood  = -2650.6833              Prob > chi2       =     0.0000
+
+                                       (Std. Err. adjusted for clustering on hid)
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0934468   .2170058    -0.43   0.667    -.5187703    .3318768
+        hh_size |  -.0340002   .0305474    -1.11   0.266     -.093872    .0258716
+         nchild |  -.0930029   .0309698    -3.00   0.003    -.1537025   -.0323033
+      full_time |   .0766897   .0495801     1.55   0.122    -.0204855    .1738649
+   years_employ |   .0119051   .0138839     0.86   0.391    -.0153069    .0391171
+education_years |   .0585972   .0270159     2.17   0.030      .005647    .1115473
+                |
+          syear |
+          1993  |  -.1244342   .0813936    -1.53   0.126    -.2839628    .0350945
+          1994  |     -.1008   .0796425    -1.27   0.206    -.2568964    .0552964
+          1995  |  -.1591838   .0844574    -1.88   0.059    -.3247172    .0063496
+          1996  |   -.216966   .0909135    -2.39   0.017    -.3951532   -.0387789
+          1997  |  -.2354975   .0974569    -2.42   0.016    -.4265095   -.0444855
+          1998  |  -.3495482    .105148    -3.32   0.001    -.5556345   -.1434619
+          1999  |  -.3805667   .1142577    -3.33   0.001    -.6045077   -.1566257
+          2000  |  -.2971175   .2525447    -1.18   0.239     -.792096     .197861
+          2001  |  -.2997007   .2617091    -1.15   0.252     -.812641    .2132397
+          2002  |  -.4154933   .2673074    -1.55   0.120    -.9394063    .1084196
+          2003  |  -.4599004   .2750138    -1.67   0.094    -.9989174    .0791167
+          2004  |  -.5103569   .2807383    -1.82   0.069    -1.060594    .0398801
+          2005  |  -.4683722   .2894469    -1.62   0.106    -1.035678    .0989333
+          2006  |  -.5484334   .2947198    -1.86   0.063    -1.126074    .0292068
+          2007  |  -.5666102   .3062376    -1.85   0.064    -1.166825    .0336044
+          2008  |  -.5865192   .3145861    -1.86   0.062    -1.203097    .0300582
+          2009  |  -.6423763   .3234827    -1.99   0.047    -1.276391   -.0083619
+          2010  |  -.6103534   .3357438    -1.82   0.069    -1.268399    .0476923
+          2011  |  -.5082725   .3455208    -1.47   0.141    -1.185481    .1689359
+          2012  |  -.6416276   .3545633    -1.81   0.070    -1.336559    .0533037
+          2013  |  -.5997043   .3670539    -1.63   0.102    -1.319117    .1197081
+          2014  |  -.5958943    .374937    -1.59   0.112    -1.330757    .1389687
+          2015  |  -.6009585       .387    -1.55   0.120    -1.359464    .1575475
+          2016  |  -.5218133   .3969122    -1.31   0.189    -1.299747    .2561202
+          2017  |  -.4834804   .4106764    -1.18   0.239    -1.288391    .3214306
+          2018  |  -.5059352   .4206627    -1.20   0.229    -1.330419    .3185484
+          2019  |  -.4820733   .4313604    -1.12   0.264    -1.327524    .3633776
+          2020  |   -.406608    .443017    -0.92   0.359    -1.274905    .4616893
+          2021  |  -.3174072   .4646544    -0.68   0.495    -1.228113    .5932988
+          2022  |  -.5047463   .4668164    -1.08   0.280     -1.41969    .4101971
+---------------------------------------------------------------------------------
+
+. estimates store lpm6
+
+. 
+. /*
+> xtset hid syear
+> xtreg rate interaction age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree
+> estimates store lpm5
+> */
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}ppml_rate.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Placebo Test on Saving Rate") ///
+>     label
+(note: file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_placebo/ppm
+> l_rate.txt not found)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/ppml_rate.txt)
+
+. 
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}ppml_rate.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Placebo Test on Saving Rate") ///
+>     label booktabs drop(*.syear)
+(note: file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_placebo/ppm
+> l_rate.tex not found)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/5_plac
+> ebo/ppml_rate.tex)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/5_did_PPML_plac
+> ebo.log
+  log type:  text
+ closed on:  26 May 2025, 08:44:30
+----------------------------------------------------------------------------------------

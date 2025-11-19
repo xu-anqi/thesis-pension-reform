@@ -1,0 +1,156 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Extensive Margin: Effect of the 2006 Pension Reform on Savings (Logit)}
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}&\multicolumn{1}{c}{(5)}&\multicolumn{1}{c}{(6)}\\
+                    &\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}&\multicolumn{1}{c}{if\_savings}\\
+\midrule
+if\_savings          &                     &                     &                     &                     &                     &                     \\
+interaction         &      -0.782\sym{***}&      -0.629\sym{***}&      -0.576\sym{***}&      -0.544\sym{***}&       0.271         &       0.205         \\
+                    &     (0.151)         &     (0.164)         &     (0.193)         &     (0.194)         &     (0.241)         &     (0.243)         \\
+\addlinespace
+post                &       0.852\sym{***}&       0.752\sym{***}&       0.581\sym{***}&                     &      -0.816\sym{***}&                     \\
+                    &     (0.149)         &     (0.162)         &     (0.192)         &                     &     (0.241)         &                     \\
+\addlinespace
+type\_employment     &       0.687\sym{***}&       0.651\sym{***}&       0.807\sym{***}&       0.793\sym{***}&                     &                     \\
+                    &     (0.148)         &     (0.161)         &     (0.190)         &     (0.190)         &                     &                     \\
+\addlinespace
+female              &                     &      -0.105\sym{***}&       0.029\sym{*}  &       0.026         &                     &                     \\
+                    &                     &     (0.014)         &     (0.017)         &     (0.018)         &                     &                     \\
+\addlinespace
+age                 &                     &       0.001         &      -0.070\sym{***}&      -0.006         &      -0.097\sym{***}&      -0.049\sym{*}  \\
+                    &                     &     (0.008)         &     (0.008)         &     (0.009)         &     (0.022)         &     (0.027)         \\
+\addlinespace
+age\_square          &                     &       0.000         &       0.001\sym{***}&      -0.000\sym{***}&       0.002\sym{***}&      -0.000         \\
+                    &                     &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         \\
+\addlinespace
+1                   &                     &       0.000         &       0.000         &       0.000         &                     &                     \\
+                    &                     &         (.)         &         (.)         &         (.)         &                     &                     \\
+\addlinespace
+2                   &                     &      -0.753\sym{***}&      -0.251\sym{***}&      -0.366\sym{***}&                     &                     \\
+                    &                     &     (0.017)         &     (0.020)         &     (0.020)         &                     &                     \\
+\addlinespace
+3                   &                     &      -0.325\sym{***}&      -0.215\sym{***}&      -0.252\sym{***}&                     &                     \\
+                    &                     &     (0.027)         &     (0.029)         &     (0.029)         &                     &                     \\
+\addlinespace
+Current Household Size&                     &       0.153\sym{***}&       0.186\sym{***}&       0.192\sym{***}&       0.232\sym{***}&       0.223\sym{***}\\
+                    &                     &     (0.012)         &     (0.013)         &     (0.013)         &     (0.026)         &     (0.026)         \\
+\addlinespace
+nchild              &                     &      -0.356\sym{***}&      -0.343\sym{***}&      -0.332\sym{***}&      -0.239\sym{***}&      -0.235\sym{***}\\
+                    &                     &     (0.015)         &     (0.015)         &     (0.016)         &     (0.028)         &     (0.028)         \\
+\addlinespace
+full\_time           &                     &                     &       0.278\sym{***}&       0.292\sym{***}&       0.361\sym{***}&       0.364\sym{***}\\
+                    &                     &                     &     (0.021)         &     (0.021)         &     (0.044)         &     (0.045)         \\
+\addlinespace
+years\_employ        &                     &                     &       0.039\sym{***}&       0.044\sym{***}&       0.036\sym{***}&       0.039\sym{***}\\
+                    &                     &                     &     (0.002)         &     (0.002)         &     (0.010)         &     (0.011)         \\
+\addlinespace
+education\_years     &                     &                     &       0.242\sym{***}&       0.242\sym{***}&       0.167\sym{***}&       0.140\sym{***}\\
+                    &                     &                     &     (0.004)         &     (0.004)         &     (0.028)         &     (0.028)         \\
+\addlinespace
+vocational\_degree   &                     &                     &       0.110\sym{***}&       0.174\sym{***}&       0.245\sym{**} &       0.308\sym{***}\\
+                    &                     &                     &     (0.018)         &     (0.018)         &     (0.101)         &     (0.103)         \\
+\addlinespace
+Survey Year=1992    &                     &                     &                     &       0.000         &                     &       0.000         \\
+                    &                     &                     &                     &         (.)         &                     &         (.)         \\
+\addlinespace
+Survey Year=1993    &                     &                     &                     &       0.145         &                     &       0.011         \\
+                    &                     &                     &                     &     (0.187)         &                     &     (0.256)         \\
+\addlinespace
+Survey Year=1994    &                     &                     &                     &       0.233         &                     &       0.051         \\
+                    &                     &                     &                     &     (0.181)         &                     &     (0.252)         \\
+\addlinespace
+Survey Year=1995    &                     &                     &                     &      -0.061         &                     &      -0.133         \\
+                    &                     &                     &                     &     (0.161)         &                     &     (0.233)         \\
+\addlinespace
+Survey Year=1996    &                     &                     &                     &      -0.031         &                     &      -0.125         \\
+                    &                     &                     &                     &     (0.160)         &                     &     (0.235)         \\
+\addlinespace
+Survey Year=1997    &                     &                     &                     &      -0.026         &                     &      -0.079         \\
+                    &                     &                     &                     &     (0.159)         &                     &     (0.238)         \\
+\addlinespace
+Survey Year=1998    &                     &                     &                     &      -0.165         &                     &      -0.271         \\
+                    &                     &                     &                     &     (0.155)         &                     &     (0.241)         \\
+\addlinespace
+Survey Year=1999    &                     &                     &                     &      -0.039         &                     &      -0.061         \\
+                    &                     &                     &                     &     (0.154)         &                     &     (0.246)         \\
+\addlinespace
+Survey Year=2000    &                     &                     &                     &      -0.180         &                     &      -0.130         \\
+                    &                     &                     &                     &     (0.147)         &                     &     (0.247)         \\
+\addlinespace
+Survey Year=2001    &                     &                     &                     &       0.412\sym{*}  &                     &      -0.159         \\
+                    &                     &                     &                     &     (0.239)         &                     &     (0.351)         \\
+\addlinespace
+Survey Year=2002    &                     &                     &                     &       0.248         &                     &      -0.443         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.357)         \\
+\addlinespace
+Survey Year=2003    &                     &                     &                     &       0.264         &                     &      -0.437         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.363)         \\
+\addlinespace
+Survey Year=2004    &                     &                     &                     &       0.256         &                     &      -0.416         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.370)         \\
+\addlinespace
+Survey Year=2005    &                     &                     &                     &       0.318         &                     &      -0.334         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.378)         \\
+\addlinespace
+Survey Year=2006    &                     &                     &                     &       0.206         &                     &      -0.586         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.385)         \\
+\addlinespace
+Survey Year=2007    &                     &                     &                     &       0.361         &                     &      -0.294         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.393)         \\
+\addlinespace
+Survey Year=2008    &                     &                     &                     &       0.371         &                     &      -0.208         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.402)         \\
+\addlinespace
+Survey Year=2009    &                     &                     &                     &       0.290         &                     &      -0.246         \\
+                    &                     &                     &                     &     (0.238)         &                     &     (0.410)         \\
+\addlinespace
+Survey Year=2010    &                     &                     &                     &       0.150         &                     &      -0.250         \\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.418)         \\
+\addlinespace
+Survey Year=2011    &                     &                     &                     &       0.287         &                     &      -0.023         \\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.427)         \\
+\addlinespace
+Survey Year=2012    &                     &                     &                     &       0.250         &                     &      -0.020         \\
+                    &                     &                     &                     &     (0.235)         &                     &     (0.436)         \\
+\addlinespace
+Survey Year=2013    &                     &                     &                     &       0.371         &                     &       0.209         \\
+                    &                     &                     &                     &     (0.235)         &                     &     (0.445)         \\
+\addlinespace
+Survey Year=2014    &                     &                     &                     &       0.433\sym{*}  &                     &       0.308         \\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.455)         \\
+\addlinespace
+Survey Year=2015    &                     &                     &                     &       0.482\sym{**} &                     &       0.452         \\
+                    &                     &                     &                     &     (0.235)         &                     &     (0.465)         \\
+\addlinespace
+Survey Year=2016    &                     &                     &                     &       0.579\sym{**} &                     &       0.623         \\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.476)         \\
+\addlinespace
+Survey Year=2017    &                     &                     &                     &       0.664\sym{***}&                     &       0.715         \\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.486)         \\
+\addlinespace
+Survey Year=2018    &                     &                     &                     &       0.735\sym{***}&                     &       0.911\sym{*}  \\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.497)         \\
+\addlinespace
+Survey Year=2019    &                     &                     &                     &       0.903\sym{***}&                     &       1.202\sym{**} \\
+                    &                     &                     &                     &     (0.235)         &                     &     (0.507)         \\
+\addlinespace
+Survey Year=2020    &                     &                     &                     &       0.815\sym{***}&                     &       1.229\sym{**} \\
+                    &                     &                     &                     &     (0.235)         &                     &     (0.519)         \\
+\addlinespace
+Survey Year=2021    &                     &                     &                     &       1.178\sym{***}&                     &       1.890\sym{***}\\
+                    &                     &                     &                     &     (0.236)         &                     &     (0.530)         \\
+\addlinespace
+Survey Year=2022    &                     &                     &                     &       0.973\sym{***}&                     &       1.361\sym{**} \\
+                    &                     &                     &                     &     (0.235)         &                     &     (0.541)         \\
+\addlinespace
+Constant            &       0.053         &       0.026         &      -2.143\sym{***}&      -3.144\sym{***}&                     &                     \\
+                    &     (0.146)         &     (0.212)         &     (0.245)         &     (0.276)         &                     &                     \\
+\midrule
+Observations        &      101601         &      101031         &       95529         &       95529         &       50962         &       50962         \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize Standard errors in parentheses}\\
+\multicolumn{7}{l}{\footnotesize \sym{*} \(p<0.10\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

@@ -1,0 +1,645 @@
+--------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_inten.log
+  log type:  text
+ opened on:  25 Apr 2025, 04:25:12
+
+. 
+. 
+. ***********************************************
+. * Intensive Margin: log Savings
+. ***********************************************
+. use "${MY_DATA_OUT}data.dta", clear
+
+. 
+. * drop obs with data quality issue
+. drop if if_savings == .
+(6,400 observations deleted)
+
+. drop if savings_amount == .
+(2,240 observations deleted)
+
+. 
+. /* 
+> * check
+> gen if_test = (savings_amount > 0)
+> tab if_test if_savings //checked
+> */
+. 
+. tab if_savings, m
+
+ if_savings |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     52,107       30.98       30.98
+          1 |    116,083       69.02      100.00
+------------+-----------------------------------
+      Total |    168,190      100.00
+
+. 
+. * Filter people who always save
+. gen has_zero = (if_savings == 0)
+
+. bysort hid (syear): egen any_zero = max(has_zero)
+
+. drop if any_zero == 1
+(110,450 observations deleted)
+
+. 
+. 
+. 
+. 
+. * Generate log savings
+. gen log = log(savings_amount)
+
+. 
+. * Generate Post-Reform Indicator
+. gen post = syear > 2006
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. 
+. 
+. *** Linear Probability Model (LPM)
+. 
+. reg log interaction post type_employment, robust
+
+Linear regression                               Number of obs     =     57,740
+                                                F(3, 57736)       =     348.81
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0239
+                                                Root MSE          =      .9736
+
+---------------------------------------------------------------------------------
+                |               Robust
+            log |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.4272243   .0646835    -6.60   0.000    -.5540043   -.3004444
+           post |   .5694334   .0639428     8.91   0.000     .4441051    .6947617
+type_employment |  -.2349971   .0599902    -3.92   0.000    -.3525781   -.1174161
+          _cons |   6.280476   .0593727   105.78   0.000     6.164106    6.396847
+---------------------------------------------------------------------------------
+
+. estimates store lpm1
+
+. 
+. reg log interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, robust
+
+Linear regression                               Number of obs     =     57,453
+                                                F(10, 57442)      =     317.33
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0595
+                                                Root MSE          =     .95616
+
+---------------------------------------------------------------------------------
+                |               Robust
+            log |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.3503446   .0647634    -5.41   0.000    -.4772813   -.2234079
+           post |   .4298895   .0642993     6.69   0.000     .3038625    .5559165
+type_employment |  -.2039479   .0601061    -3.39   0.001    -.3217562   -.0861396
+         female |  -.0534424   .0080061    -6.68   0.000    -.0691344   -.0377505
+            age |   .0473388   .0038552    12.28   0.000     .0397826    .0548949
+     age_square |  -.0004346   .0000512    -8.49   0.000     -.000535   -.0003342
+                |
+        migback |
+             2  |  -.0230294   .0120035    -1.92   0.055    -.0465564    .0004976
+             3  |    -.03496   .0172633    -2.03   0.043    -.0687962   -.0011237
+                |
+        hh_size |   .1877328   .0056349    33.32   0.000     .1766883    .1987773
+         nchild |  -.2081921   .0072013   -28.91   0.000    -.2223066   -.1940776
+          _cons |   4.858876   .0949955    51.15   0.000     4.672684    5.045068
+---------------------------------------------------------------------------------
+
+. estimates store lpm2
+
+. 
+. reg log interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, robust
+
+Linear regression                               Number of obs     =     53,223
+                                                F(14, 53208)      =     593.38
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1465
+                                                Root MSE          =     .90985
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+              log |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   -.318791   .0641683    -4.97   0.000    -.4445614   -.1930207
+             post |   .3217594   .0637184     5.05   0.000     .1968708     .446648
+  type_employment |  -.2018686   .0595809    -3.39   0.001    -.3186477   -.0850894
+           female |  -.0222771   .0089955    -2.48   0.013    -.0399084   -.0046458
+              age |   .0141744   .0040252     3.52   0.000      .006285    .0220638
+       age_square |  -.0000912   .0000521    -1.75   0.080    -.0001933    .0000108
+                  |
+          migback |
+               2  |   .1306528   .0136398     9.58   0.000     .1039188    .1573869
+               3  |  -.0202057   .0169544    -1.19   0.233    -.0534366    .0130251
+                  |
+          hh_size |   .2233994   .0056916    39.25   0.000     .2122439     .234555
+           nchild |  -.2329897   .0071314   -32.67   0.000    -.2469673   -.2190121
+        full_time |   .1055141   .0115205     9.16   0.000     .0829338    .1280944
+     years_employ |   .0075512   .0011076     6.82   0.000     .0053804    .0097221
+  education_years |   .0983024   .0019154    51.32   0.000     .0945482    .1020566
+vocational_degree |   -.148571   .0100216   -14.83   0.000    -.1682135   -.1289285
+            _cons |   4.122986   .0983053    41.94   0.000     3.930307    4.315665
+-----------------------------------------------------------------------------------
+
+. estimates store lpm3
+
+. 
+. reghdfe log interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, absorb(syear) v
+> ce(cluster hid)
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =     53,223
+Absorbing 1 HDFE group                            F(  13,  12426) =     128.17
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.1576
+                                                  Adj R-squared   =     0.1570
+                                                  Within R-sq.    =     0.1362
+Number of clusters (hid)     =     12,427         Root MSE        =     0.9041
+
+                                    (Std. Err. adjusted for 12,427 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+              log |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.2990868   .1049084    -2.85   0.004    -.5047236   -.0934501
+  type_employment |  -.2033686   .0994319    -2.05   0.041    -.3982706   -.0084667
+           female |  -.0178995    .015374    -1.16   0.244     -.048035     .012236
+              age |   .0373738   .0072875     5.13   0.000     .0230893    .0516584
+       age_square |  -.0004297    .000098    -4.38   0.000    -.0006218   -.0002375
+                  |
+          migback |
+               2  |   .0970551   .0280024     3.47   0.001      .042166    .1519441
+               3  |  -.0308696   .0344719    -0.90   0.371    -.0984399    .0367007
+                  |
+          hh_size |   .2291449    .012589    18.20   0.000     .2044685    .2538212
+           nchild |  -.2280575   .0154025   -14.81   0.000    -.2582488   -.1978661
+        full_time |   .1159899   .0196906     5.89   0.000     .0773932    .1545866
+     years_employ |   .0070874    .002038     3.48   0.001     .0030927    .0110822
+  education_years |   .0973086   .0039054    24.92   0.000     .0896534    .1049638
+vocational_degree |  -.1338496   .0197483    -6.78   0.000    -.1725593   -.0951398
+            _cons |   3.989434   .1441368    27.68   0.000     3.706904    4.271965
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |        31           0          31     |
+-----------------------------------------------------+
+
+. estimates store lpm4
+
+. 
+. reghdfe log interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, absorb(syear hi
+> d) vce(cluster hid)
+(dropped 5433 singleton observations)
+(MWFE estimator converged in 12 iterations)
+
+HDFE Linear regression                            Number of obs   =     47,790
+Absorbing 2 HDFE groups                           F(  13,   6993) =      13.90
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7181
+                                                  Adj R-squared   =     0.6694
+                                                  Within R-sq.    =     0.0117
+Number of clusters (hid)     =      6,994         Root MSE        =     0.5606
+
+                                     (Std. Err. adjusted for 6,994 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+              log |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0158687   .1110094    -0.14   0.886    -.2334808    .2017435
+  type_employment |   .0085032   .1080617     0.08   0.937    -.2033306     .220337
+           female |   .0499927    .008124     6.15   0.000     .0340672    .0659182
+              age |   .0504169   .0073205     6.89   0.000     .0360666    .0647672
+       age_square |  -.0006808      .0001    -6.81   0.000    -.0008769   -.0004847
+                  |
+          migback |
+               2  |   .0015644   .0214517     0.07   0.942    -.0404875    .0436162
+               3  |   .0009419   .0158619     0.06   0.953    -.0301521     .032036
+                  |
+          hh_size |    .107356   .0147933     7.26   0.000     .0783566    .1363555
+           nchild |  -.1241943   .0142888    -8.69   0.000    -.1522047   -.0961839
+        full_time |   .1018877   .0123846     8.23   0.000     .0776101    .1261654
+     years_employ |  -.0013591   .0011957    -1.14   0.256    -.0037029    .0009848
+  education_years |   .0009867    .002544     0.39   0.698    -.0040002    .0059737
+vocational_degree |  -.0057033   .0114814    -0.50   0.619    -.0282104    .0168038
+            _cons |   5.044923   .1376985    36.64   0.000     4.774992    5.314854
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |        31           0          31     |
+         hid |      6994        6994           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store lpm5
+
+. 
+. reghdfe log interaction  ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, absorb(syear pi
+> d) vce(cluster pid)
+(dropped 7097 singleton observations)
+(MWFE estimator converged in 12 iterations)
+
+HDFE Linear regression                            Number of obs   =     46,126
+Absorbing 2 HDFE groups                           F(   7,   8207) =      43.86
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.7048
+                                                  Adj R-squared   =     0.6405
+                                                  Within R-sq.    =     0.0201
+Number of clusters (pid)     =      8,208         Root MSE        =     0.5835
+
+                                     (Std. Err. adjusted for 8,208 clusters in pid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+              log |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0645073   .1607463    -0.40   0.688    -.3796107    .2505961
+          hh_size |   .1714373    .011746    14.60   0.000     .1484122    .1944624
+           nchild |  -.1370363   .0119629   -11.46   0.000    -.1604865   -.1135861
+        full_time |   .1612382   .0203435     7.93   0.000     .1213597    .2011167
+     years_employ |   .0161253   .0078996     2.04   0.041     .0006402    .0316105
+  education_years |   .0547188   .0156924     3.49   0.000     .0239576      .08548
+vocational_degree |  -.0318249   .0582092    -0.55   0.585    -.1459296    .0822799
+            _cons |   4.825649   .2738498    17.62   0.000     4.288834    5.362464
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |        31           0          31     |
+         pid |      8208        8208           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store lpm6
+
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}did_amount.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Intensive Margin: Effect of the 2006 Pension Reform on Amount Saved") ///
+>     label
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_inten/did_amou
+> nt.txt)
+
+. 
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}did_amount.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Intensive Margin: Effect of the 2006 Pension Reform on Amount Saved") ///
+>     label booktabs
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_inten/did_amou
+> nt.tex)
+
+. 
+.         
+.         
+. 
+. 
+. 
+. ***********************************************
+. * Intensive Margin: saving rate
+. ***********************************************
+. 
+. /* check
+> tab household_income if household_income < 10, m
+> tab savings_amount if savings_amount < 10, m
+> tab household_income if household_income ==.
+> */
+. 
+. drop if household_income == 0
+(9 observations deleted)
+
+. drop if household_income == .
+(1,278 observations deleted)
+
+. 
+. gen rate = savings_amount/household_income
+
+. 
+. tab rate if rate>1
+
+       rate |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   1.066667 |          1        4.35        4.35
+   1.076923 |          1        4.35        8.70
+      1.125 |          1        4.35       13.04
+       1.25 |          2        8.70       21.74
+   1.333333 |          1        4.35       26.09
+   1.333333 |          1        4.35       30.43
+   1.666667 |          2        8.70       39.13
+   1.785714 |          1        4.35       43.48
+   2.333333 |          2        8.70       52.17
+        2.5 |          2        8.70       60.87
+   2.857143 |          1        4.35       65.22
+   4.166667 |          1        4.35       69.57
+   5.555556 |          2        8.70       78.26
+   5.833333 |          2        8.70       86.96
+          7 |          1        4.35       91.30
+       8.75 |          2        8.70      100.00
+------------+-----------------------------------
+      Total |         23      100.00
+
+. drop if rate > 1
+(23 observations deleted)
+
+. sum rate, d
+
+                            rate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .0175439       .0001667
+ 5%     .0333333          .0002
+10%     .0454545       .0002174       Obs              56,430
+25%     .0759259       .0002222       Sum of Wgt.      56,430
+
+50%     .1304348                      Mean           .1673309
+                        Largest       Std. Dev.      .1274178
+75%     .2222222              1
+90%     .3431502              1       Variance       .0162353
+95%     .4285714              1       Skewness       1.551335
+99%     .5952381              1       Kurtosis       5.909896
+
+. 
+. 
+. 
+. *** Linear Probability Model (LPM)
+. 
+. reg rate interaction post type_employment, robust
+
+Linear regression                               Number of obs     =     56,430
+                                                F(3, 56426)       =     100.75
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0085
+                                                Root MSE          =     .12688
+
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0327567   .0090632    -3.61   0.000    -.0505205   -.0149928
+           post |   .0393486   .0089684     4.39   0.000     .0217705    .0569267
+type_employment |  -.0223137   .0083896    -2.66   0.008    -.0387573   -.0058701
+          _cons |   .1817716   .0083092    21.88   0.000     .1654854    .1980577
+---------------------------------------------------------------------------------
+
+. estimates store lpm1
+
+. 
+. reg rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, robust
+
+Linear regression                               Number of obs     =     56,158
+                                                F(10, 56147)      =     191.74
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0377
+                                                Root MSE          =     .12503
+
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0319233   .0089576    -3.56   0.000    -.0494801   -.0143664
+           post |    .039628   .0088947     4.46   0.000     .0221944    .0570616
+type_employment |  -.0240097   .0082894    -2.90   0.004     -.040257   -.0077624
+         female |  -.0109617   .0010568   -10.37   0.000     -.013033   -.0088904
+            age |    .001865   .0005059     3.69   0.000     .0008734    .0028565
+     age_square |  -.0000206   6.73e-06    -3.06   0.002    -.0000338   -7.43e-06
+                |
+        migback |
+             2  |   .0134026    .001624     8.25   0.000     .0102195    .0165857
+             3  |  -.0052568   .0022472    -2.34   0.019    -.0096613   -.0008524
+                |
+        hh_size |  -.0132196   .0006865   -19.26   0.000    -.0145651   -.0118742
+         nchild |  -.0040547   .0008435    -4.81   0.000    -.0057081   -.0024014
+          _cons |    .188694   .0126902    14.87   0.000     .1638211    .2135669
+---------------------------------------------------------------------------------
+
+. estimates store lpm2
+
+. 
+. reg rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, robust
+
+Linear regression                               Number of obs     =     52,101
+                                                F(14, 52086)      =     253.67
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0702
+                                                Root MSE          =     .12275
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0344449   .0093367    -3.69   0.000     -.052745   -.0161448
+             post |   .0355421   .0092739     3.83   0.000     .0173652     .053719
+  type_employment |  -.0207218   .0086569    -2.39   0.017    -.0376893   -.0037543
+           female |  -.0101536   .0012394    -8.19   0.000    -.0125829   -.0077242
+              age |  -.0004646   .0005409    -0.86   0.390    -.0015247    .0005956
+       age_square |   5.81e-06   7.05e-06     0.82   0.410    -8.00e-06    .0000196
+                  |
+          migback |
+               2  |   .0229985   .0018202    12.64   0.000     .0194309    .0265661
+               3  |  -.0043542   .0022862    -1.90   0.057    -.0088352    .0001268
+                  |
+          hh_size |  -.0101131   .0007078   -14.29   0.000    -.0115004   -.0087257
+           nchild |  -.0069618   .0008585    -8.11   0.000    -.0086444   -.0052791
+        full_time |   .0040886   .0014722     2.78   0.005      .001203    .0069742
+     years_employ |   .0003295    .000141     2.34   0.019     .0000531    .0006059
+  education_years |   .0075678   .0002566    29.49   0.000     .0070649    .0080707
+vocational_degree |  -.0155082   .0013522   -11.47   0.000    -.0181585   -.0128579
+            _cons |   .1312581   .0135697     9.67   0.000     .1046613    .1578548
+-----------------------------------------------------------------------------------
+
+. estimates store lpm3
+
+. 
+. reghdfe rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, absorb(syear) v
+> ce(cluster hid)
+note: post is probably collinear with the fixed effects (all partialled-out values are close to ze
+> ro; tol = 1.0e-09)
+(MWFE estimator converged in 1 iterations)
+note: post omitted because of collinearity
+
+HDFE Linear regression                            Number of obs   =     52,101
+Absorbing 1 HDFE group                            F(  13,  12157) =      57.99
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.0789
+                                                  Adj R-squared   =     0.0781
+                                                  Within R-sq.    =     0.0655
+Number of clusters (hid)     =     12,158         Root MSE        =     0.1222
+
+                                    (Std. Err. adjusted for 12,158 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0305164   .0147886    -2.06   0.039    -.0595043   -.0015284
+             post |          0  (omitted)
+  type_employment |  -.0225546   .0141633    -1.59   0.111     -.050317    .0052077
+           female |  -.0098635   .0020698    -4.77   0.000    -.0139206   -.0058064
+              age |   .0021091   .0009629     2.19   0.029     .0002217    .0039965
+       age_square |  -.0000305    .000013    -2.34   0.019     -.000056   -4.99e-06
+                  |
+          migback |
+               2  |   .0197903   .0035867     5.52   0.000     .0127599    .0268208
+               3  |  -.0055021    .004836    -1.14   0.255    -.0149815    .0039772
+                  |
+          hh_size |  -.0098436   .0014292    -6.89   0.000    -.0126451    -.007042
+           nchild |  -.0064531   .0017447    -3.70   0.000    -.0098729   -.0030333
+        full_time |    .005117    .002475     2.07   0.039     .0002657    .0099684
+     years_employ |    .000209   .0002516     0.83   0.406    -.0002843    .0007022
+  education_years |   .0075006   .0005291    14.18   0.000     .0064636    .0085376
+vocational_degree |  -.0139314   .0025682    -5.42   0.000    -.0189655   -.0088974
+            _cons |   .1163039   .0192055     6.06   0.000     .0786581    .1539498
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |        31           0          31     |
+-----------------------------------------------------+
+
+. estimates store lpm4
+
+. 
+. reghdfe rate interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, absorb(syear hi
+> d) vce(cluster hid)
+(dropped 5287 singleton observations)
+note: post is probably collinear with the fixed effects (all partialled-out values are close to ze
+> ro; tol = 1.0e-09)
+(MWFE estimator converged in 12 iterations)
+note: post omitted because of collinearity
+
+HDFE Linear regression                            Number of obs   =     46,814
+Absorbing 2 HDFE groups                           F(  13,   6870) =       9.28
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6427
+                                                  Adj R-squared   =     0.5808
+                                                  Within R-sq.    =     0.0088
+Number of clusters (hid)     =      6,871         Root MSE        =     0.0815
+
+                                     (Std. Err. adjusted for 6,871 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0058789   .0160047    -0.37   0.713    -.0372531    .0254952
+             post |          0  (omitted)
+  type_employment |    .003728    .014678     0.25   0.800    -.0250454    .0325014
+           female |   .0028698   .0009912     2.90   0.004     .0009268    .0048129
+              age |   .0022964   .0009647     2.38   0.017     .0004053    .0041875
+       age_square |  -.0000287   .0000134    -2.15   0.032    -.0000549   -2.52e-06
+                  |
+          migback |
+               2  |  -.0010883   .0023805    -0.46   0.648    -.0057548    .0035782
+               3  |  -.0024468   .0021248    -1.15   0.250     -.006612    .0017184
+                  |
+          hh_size |  -.0126228    .001853    -6.81   0.000    -.0162552   -.0089904
+           nchild |  -.0033552   .0017087    -1.96   0.050    -.0067047   -5.75e-06
+        full_time |    .007969   .0015694     5.08   0.000     .0048926    .0110455
+     years_employ |  -.0001737   .0001433    -1.21   0.226    -.0004547    .0001073
+  education_years |   .0000533   .0003268     0.16   0.870    -.0005874     .000694
+vocational_degree |  -.0013731   .0014306    -0.96   0.337    -.0041776    .0014314
+            _cons |   .1599414   .0177809     9.00   0.000     .1250853    .1947976
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |        31           0          31     |
+         hid |      6871        6871           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store lpm5
+
+. 
+. reghdfe rate interaction  ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, absorb(syear pi
+> d) vce(cluster pid)
+(dropped 6945 singleton observations)
+(MWFE estimator converged in 12 iterations)
+
+HDFE Linear regression                            Number of obs   =     45,156
+Absorbing 2 HDFE groups                           F(   7,   8042) =      22.57
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.6265
+                                                  Adj R-squared   =     0.5451
+                                                  Within R-sq.    =     0.0103
+Number of clusters (pid)     =      8,043         Root MSE        =     0.0849
+
+                                     (Std. Err. adjusted for 8,043 clusters in pid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0158498   .0258714    -0.61   0.540    -.0665644    .0348649
+          hh_size |  -.0111472   .0014928    -7.47   0.000    -.0140734    -.008221
+           nchild |  -.0022946   .0014847    -1.55   0.122     -.005205    .0006159
+        full_time |   .0134725   .0026538     5.08   0.000     .0082705    .0186746
+     years_employ |    .000398   .0010252     0.39   0.698    -.0016117    .0024077
+  education_years |   .0058588   .0024594     2.38   0.017     .0010377    .0106799
+vocational_degree |  -.0068433   .0079283    -0.86   0.388    -.0223847    .0086982
+            _cons |   .1235147   .0420546     2.94   0.003     .0410769    .2059526
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |        31           0          31     |
+         pid |      8043        8043           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store lpm6
+
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}did_rate.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Intensive Margin: Effect of the 2006 Pension Reform on Saving Rate") ///
+>     label
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_inten/did_rate
+> .txt)
+
+. 
+. esttab lpm1 lpm2 lpm3 lpm4 lpm5 lpm6 using "${MY_OUTPUT_OUT}did_rate.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Intensive Margin: Effect of the 2006 Pension Reform on Saving Rate") ///
+>     label booktabs
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_inten/did_rate
+> .tex)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_inten.log
+  log type:  text
+ closed on:  25 Apr 2025, 04:25:28
+--------------------------------------------------------------------------------------------------

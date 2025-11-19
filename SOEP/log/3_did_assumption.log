@@ -1,0 +1,320 @@
+--------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/3_did_assumption.log
+  log type:  text
+ opened on:  25 Apr 2025, 02:05:28
+
+. 
+. ***********************************************
+. * check parallel pre-trend (unconditional)
+. ***********************************************
+. *** if savings ***
+. use "${OUT_DATA}data.dta", clear
+
+. collapse (mean) if_savings (sd) if_savings_sd=if_savings (count) N = pid, by(syear type_employme
+> nt)
+
+. 
+. gen upper = if_savings + 1.96 * (if_savings_sd / sqrt(N))
+
+. gen lower = if_savings - 1.96 * (if_savings_sd / sqrt(N))
+
+. 
+. twoway (rarea lower upper syear if type_employment == 0, color(blue%20)) ///
+>        (line if_savings syear if type_employment == 0, lcolor(blue) lpattern(solid)) ///
+>        (rarea lower upper syear if type_employment == 1, color(orange%20)) ///
+>        (line if_savings syear if type_employment == 1, lcolor(orange) lpattern(dash)) ///
+>        , xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium)) ///
+>        title("Proportion of Individuals with Savings") ///
+>        xtitle("Year") ytitle("Proportion with Savings") ///
+>        legend(order(2 "Self-Employed (Control)" 4 "Employee (Treated)")) ///
+>        xlabel(, angle(45))
+
+. graph export "${OUT_OUTPUT}parallel_if1.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_if1.p
+> ng written in PNG format)
+
+. 
+. 
+. 
+. 
+. *** amount saved (excluding 0) ***
+. use "${OUT_DATA}data.dta", clear
+
+. keep if savings_amount != 0 & !missing(savings_amount)
+(60,747 observations deleted)
+
+. collapse (mean) savings_amount (sd) savings_sd=savings_amount (count) N = pid, by(syear type_emp
+> loyment)
+
+. gen upper = savings_amount + 1.96 * (savings_sd / sqrt(N))
+
+. gen lower = savings_amount - 1.96 * (savings_sd / sqrt(N))
+
+. 
+. twoway (rarea lower upper syear if type_employment == 0, color(blue%20)) ///
+>        (line savings_amount syear if type_employment == 0, lcolor(blue) lpattern(solid)) ///
+>        (rarea lower upper syear if type_employment == 1, color(orange%20)) ///
+>        (line savings_amount syear if type_employment == 1, lcolor(orange) lpattern(dash)) ///
+>        , xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium)) ///
+>        title("Average Savings Amount") ///
+>        xtitle("Year") ytitle("Mean Savings Amount") ///
+>        legend(order(2 "Self-Employed (Control)" 4 "Employee (Treated)")) ///
+>        xlabel(, angle(45))
+
+. graph export "${OUT_OUTPUT}parallel_amount1.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_amoun
+> t1.png written in PNG format)
+
+. 
+. 
+. *** log amount saved (excluding 0) ***
+. use "${OUT_DATA}data.dta", clear
+
+. keep if savings_amount != 0 & !missing(savings_amount)
+(60,747 observations deleted)
+
+. gen log_savings = log(savings_amount)
+
+. collapse (mean) log_savings (sd) log_savings_sd=log_savings (count) N = pid, by(syear type_emplo
+> yment)
+
+. gen upper = log_savings + 1.96 * (log_savings_sd / sqrt(N))
+
+. gen lower = log_savings - 1.96 * (log_savings_sd / sqrt(N))
+
+. 
+. twoway (rarea lower upper syear if type_employment == 0, color(blue%20)) ///
+>        (line log_savings syear if type_employment == 0, lcolor(blue) lpattern(solid)) ///
+>        (rarea lower upper syear if type_employment == 1, color(orange%20)) ///
+>        (line log_savings syear if type_employment == 1, lcolor(orange) lpattern(dash)) ///
+>        , xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium)) ///
+>        title("Log Average Savings Amount") ///
+>        xtitle("Year") ytitle("Mean Log Savings Amount") ///
+>        legend(order(2 "Self-Employed (Control)" 4 "Employee (Treated)")) ///
+>        xlabel(, angle(45))
+
+. graph export "${OUT_OUTPUT}parallel_log_amount1.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_log_a
+> mount1.png written in PNG format)
+
+. 
+. 
+. *** saving rate (excluding 0) ***
+. 
+. use "${OUT_DATA}data.dta", clear
+
+. keep if savings_amount != 0 & !missing(savings_amount)
+(60,747 observations deleted)
+
+. drop if labor_income <= 0
+(231 observations deleted)
+
+. gen saving_rate = savings_amount/labor_income
+
+. collapse (mean) saving_rate (sd) saving_rate_sd = saving_rate (count) N = pid, by(syear type_emp
+> loyment)
+
+. gen upper = saving_rate + 1.96 * (saving_rate_sd / sqrt(N))
+
+. gen lower = saving_rate - 1.96 * (saving_rate_sd / sqrt(N))
+
+. 
+. twoway (rarea lower upper syear if type_employment == 0, color(blue%20)) ///
+>        (line saving_rate syear if type_employment == 0, lcolor(blue) lpattern(solid)) ///
+>        (rarea lower upper syear if type_employment == 1, color(orange%20)) ///
+>        (line saving_rate syear if type_employment == 1, lcolor(orange) lpattern(dash)) ///
+>        , xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium)) ///
+>        title("Average Saving Rate") ///
+>        xtitle("Year") ytitle("Mean saving_rate") ///
+>        legend(order(2 "Self-Employed (Control)" 4 "Employee (Treated)")) ///
+>        xlabel(, angle(45))
+
+. graph export "${OUT_OUTPUT}parallel_saving_rate1.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_savin
+> g_rate1.png written in PNG format)
+
+. 
+. 
+. ***********************************************
+. * check parallel pre-trend (binscatter)
+. ***********************************************
+. 
+. *** if savings ***
+. use "${OUT_DATA}data.dta", clear
+
+. 
+. * Generate an indicator for pre- and post-2006 periods
+. gen post2006 = syear > 2006
+
+. 
+. * Create a categorical variable combining type_employment & post2006
+. gen group = type_employment * 2 + post2006
+
+. label define group_lbl 0 "Self-Employed (Pre-2006)" 1 "Self-Employed (Post-2006)" ///
+>                       2 "Employee (Pre-2006)" 3 "Employee (Post-2006)"
+
+. label values group group_lbl
+
+. 
+. * Binscatter with separate trends before and after 2006
+. binscatter if_savings syear, by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Parallel Trends Assumption: Proportion with Savings") ///
+>     xtitle("Year") ytitle("Proportion with Savings") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_if2.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_if2.p
+> ng written in PNG format)
+
+. 
+. * Binscatter with controls
+. binscatter if_savings syear, ///
+>         by(group) ///
+>         controls(age female i.migback married hh_size nchild full_time years_employ ///
+>         education_years) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Conditional Parallel Trends Assumption: Proportion with Savings") ///
+>     xtitle("Year") ytitle("Proportion with Savings") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_if3.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_if3.p
+> ng written in PNG format)
+
+. 
+. 
+. *** amount saved (excluding 0) ***
+. 
+. keep if savings_amount != 0 & !missing(savings_amount)
+(60,747 observations deleted)
+
+. 
+. * Binscatter with separate trends before and after 2006
+. binscatter savings_amount syear, by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Parallel Trends Assumption: Amount Saved") ///
+>     xtitle("Year") ytitle("amount saved") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_amount2.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_amoun
+> t2.png written in PNG format)
+
+. 
+. * Binscatter with controls
+. binscatter savings_amount syear, ///
+>         controls(age female i.migback married hh_size nchild full_time years_employ ///
+>         education_years) ///
+>         by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Conditional Parallel Trends Assumption: Amount Saved") ///
+>     xtitle("Year") ytitle("amount saved") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_amount3.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_amoun
+> t3.png written in PNG format)
+
+. 
+. 
+. 
+. *** log amount saved (excluding 0) ***
+. 
+. keep if savings_amount != 0 & !missing(savings_amount)
+(0 observations deleted)
+
+. gen log_savings = log(savings_amount)
+
+. 
+. * Binscatter with separate trends before and after 2006
+. binscatter log_savings syear, by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Parallel Trends Assumption: Log Amount Saved") ///
+>     xtitle("Year") ytitle("log amount saved") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_log_amount2.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_log_a
+> mount2.png written in PNG format)
+
+. 
+. 
+. * Binscatter with controls
+. binscatter log_savings syear, ///
+>         controls(age female i.migback married hh_size nchild full_time years_employ ///
+>         education_years) ///
+>         by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Conditional Parallel Trends Assumption: Log Amount Saved") ///
+>     xtitle("Year") ytitle("log amount saved") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_log_amount3.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_log_a
+> mount3.png written in PNG format)
+
+. 
+. 
+. 
+. *** saving rate (excluding 0) ***
+. 
+. keep if savings_amount != 0 & !missing(savings_amount)
+(0 observations deleted)
+
+. drop if labor_income <= 0
+(231 observations deleted)
+
+. gen saving_rate = savings_amount/labor_income
+
+. 
+. * Binscatter with separate trends before and after 2006
+. binscatter saving_rate syear, by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Parallel Trends Assumption: Saving Rate") ///
+>     xtitle("Year") ytitle("saving rate") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_saving_rate2.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_savin
+> g_rate2.png written in PNG format)
+
+. 
+. * Binscatter with controls
+. binscatter saving_rate syear, ///
+>         controls(age female i.migback married hh_size nchild full_time years_employ ///
+>         education_years) ///
+>         by(group) ///
+>     lcolor(blue blue orange orange) ///
+>     title("Conditional Parallel Trends Assumption: Saving Rate") ///
+>     xtitle("Year") ytitle("saving rate") ///
+>     legend(order(1 "Self-Employed (Pre-2006)" 2 "Self-Employed (Post-2006)" ///
+>                  3 "Employee (Pre-2006)" 4 "Employee (Post-2006)")) ///
+>     xlabel(, angle(45)) xline(2006, lcolor(red) lpattern(shortdash) lwidth(medium))
+
+. graph export "${OUT_OUTPUT}parallel_saving_rate3.png", replace
+(file /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/did_assumption/parallel_savin
+> g_rate3.png written in PNG format)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/3_did_assumption.log
+  log type:  text
+ closed on:  25 Apr 2025, 02:06:26
+--------------------------------------------------------------------------------------------------

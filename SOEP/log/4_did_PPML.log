@@ -1,0 +1,865 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_PPML.log
+  log type:  text
+ opened on:  28 Jul 2025, 15:32:55
+
+. 
+. ***********************************************
+. * Intensive Margin: log Savings
+. ***********************************************
+. use "${MY_DATA_OUT}data_head.dta", clear
+
+. label variable savings_amount "amount"
+
+. 
+. * To be consistent with SAVE, use only year 2003-2010
+. * keep if (syear >= 2005) & (syear <=2009)
+.  keep if (syear >= 2003) & (syear <=2010)
+(86,704 observations deleted)
+
+. *
+. 
+. 
+. * drop obs with data quality issue
+. drop if if_savings == .
+(168 observations deleted)
+
+. drop if savings_amount == .
+(476 observations deleted)
+
+. 
+. /* 
+> * check
+> gen if_test = (savings_amount > 0)
+> tab if_test if_savings //checked
+> */
+. 
+. tab if_savings, m
+
+ if_savings |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      6,513       34.56       34.56
+          1 |     12,332       65.44      100.00
+------------+-----------------------------------
+      Total |     18,845      100.00
+
+. sum savings_amount,d
+
+                           amount
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              18,845
+25%            0              0       Sum of Wgt.      18,845
+
+50%          100                      Mean           236.3361
+                        Largest       Std. Dev.      469.7308
+75%     287.4847       13434.63
+90%     539.2405       13831.17       Variance         220647
+95%      922.078       16035.02       Skewness       14.74105
+99%     1844.156       23367.09       Kurtosis       499.3761
+
+. 
+. 
+. * Generate log savings - For TOBIT, log is not needed
+. * gen log = log(savings_amount)
+. 
+. * Generate Post-Reform Indicator
+. gen post = syear >= 2006
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. *** compositional change check
+. * 1. define cutoff year
+. local cutoff = 2006
+
+. 
+. * 2. Compute for each pid their first and last survey year
+. egen min_year = min(syear), by(pid)
+
+. egen max_year = max(syear), by(pid)
+
+. 
+. * 3. Create a compositional‐change indicator
+. gen byte comp_status = .
+(18,845 missing values generated)
+
+. replace comp_status = 1 if max_year <= `cutoff'-1   // only pre‐reform
+(936 real changes made)
+
+. replace comp_status = 2 if min_year >= `cutoff'    // only post‐reform
+(5,872 real changes made)
+
+. replace comp_status = 3 if max_year >= `cutoff' & min_year <= `cutoff'-1  /// both per
+> iods
+> 
+(12,037 real changes made)
+
+. * 4. Tabulate counts
+. tab comp_status,m
+
+comp_status |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        936        4.97        4.97
+          2 |      5,872       31.16       36.13
+          3 |     12,037       63.87      100.00
+------------+-----------------------------------
+      Total |     18,845      100.00
+
+. 
+. * 5. keep only balanced heads
+. keep if comp_status == 3
+(6,808 observations deleted)
+
+. 
+. 
+. 
+. *** PPML
+. * Model 1: No controls
+. ppmlhdfe savings_amount interaction post type_employment, ///
+>     absorb() vce(robust)
+Iteration 1:   deviance = 4.7482e+06  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.27  P   
+Iteration 2:   deviance = 4.6280e+06  eps = 2.60e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.44      
+Iteration 3:   deviance = 4.6270e+06  eps = 2.16e-04  iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.46      
+Iteration 4:   deviance = 4.6270e+06  eps = 2.28e-08  iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.46      
+Iteration 5:   deviance = 4.6270e+06  eps = 1.15e-15  iters = 1    tol = 1.0e-05  min(et
+> a) =  -0.46   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+PPML regression                                   No. of obs      =     12,037
+                                                  Residual df     =     12,033
+                                                  Wald chi2(3)    =      16.35
+Deviance             =  4627041.476               Prob > chi2     =     0.0010
+Log pseudolikelihood = -2343592.717               Pseudo R2       =     0.0021
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.1815568   .1717912    -1.06   0.291    -.5182613    .1551478
+           post |   .2502747     .16942     1.48   0.140    -.0817824    .5823318
+type_employment |  -.1409222   .1311312    -1.07   0.283    -.3979347    .1160902
+          _cons |   5.581662   .1292327    43.19   0.000     5.328371    5.834953
+---------------------------------------------------------------------------------
+
+. estimates store ppml1
+
+. 
+. * Model 2: Add demographics
+. ppmlhdfe savings_amount interaction post type_employment female age age_square i.migba
+> ck ///
+>     hh_size nchild, absorb() vce(robust)
+Iteration 1:   deviance = 4.5448e+06  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.61  P   
+Iteration 2:   deviance = 4.4008e+06  eps = 3.27e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.99      
+Iteration 3:   deviance = 4.3987e+06  eps = 4.58e-04  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.77      
+Iteration 4:   deviance = 4.3987e+06  eps = 2.36e-07  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.77      
+Iteration 5:   deviance = 4.3987e+06  eps = 1.16e-13  iters = 1    tol = 1.0e-05  min(et
+> a) =  -4.77   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+PPML regression                                   No. of obs      =     12,035
+                                                  Residual df     =     12,024
+                                                  Wald chi2(10)   =     506.70
+Deviance             =  4398740.621               Prob > chi2     =     0.0000
+Log pseudolikelihood = -2229434.871               Pseudo R2       =     0.0507
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.2446579   .1744097    -1.40   0.161    -.5864945    .0971787
+           post |   .2802834   .1724705     1.63   0.104    -.0577525    .6183193
+type_employment |  -.0583851   .1319557    -0.44   0.658    -.3170135    .2002434
+         female |  -.1537976   .0272235    -5.65   0.000    -.2071547   -.1004405
+            age |   .1914069   .0315504     6.07   0.000     .1295692    .2532446
+     age_square |  -.0026505     .00047    -5.64   0.000    -.0035717   -.0017293
+                |
+        migback |
+             2  |  -.6191539   .0625121    -9.90   0.000    -.7416754   -.4966324
+             3  |  -.2265531   .0517389    -4.38   0.000    -.3279595   -.1251468
+                |
+        hh_size |   .2946055   .0190103    15.50   0.000     .2573459    .3318651
+         nchild |  -.4401918   .0273006   -16.12   0.000    -.4937001   -.3866835
+          _cons |   1.848433   .5470006     3.38   0.001     .7763318    2.920535
+---------------------------------------------------------------------------------
+
+. estimates store ppml2
+
+. 
+. * Model 3: Add labor & education
+. ppmlhdfe savings_amount interaction post type_employment female age age_square i.migba
+> ck ///
+>     hh_size nchild full_time years_employ education_years vocational_degree, ///
+>     absorb() vce(robust)
+Iteration 1:   deviance = 3.8869e+06  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.81  P   
+Iteration 2:   deviance = 3.7446e+06  eps = 3.80e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.43      
+Iteration 3:   deviance = 3.7426e+06  eps = 5.19e-04  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.31      
+Iteration 4:   deviance = 3.7426e+06  eps = 3.19e-07  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.31      
+Iteration 5:   deviance = 3.7426e+06  eps = 6.92e-13  iters = 1    tol = 1.0e-05  min(et
+> a) =  -5.31   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+PPML regression                                   No. of obs      =     11,911
+                                                  Residual df     =     11,896
+                                                  Wald chi2(14)   =    1810.67
+Deviance             =  3742645.299               Prob > chi2     =     0.0000
+Log pseudolikelihood = -1901113.203               Pseudo R2       =     0.1820
+-----------------------------------------------------------------------------------
+                  |               Robust
+   savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.2005502   .1754824    -1.14   0.253    -.5444893    .1433889
+             post |   .2154018   .1735305     1.24   0.214    -.1247118    .5555154
+  type_employment |   -.028395   .1307595    -0.22   0.828    -.2846789     .227889
+           female |   -.131898   .0281238    -4.69   0.000    -.1870196   -.0767764
+              age |   .0455197   .0300559     1.51   0.130    -.0133888    .1044281
+       age_square |  -.0007377   .0004506    -1.64   0.102    -.0016208    .0001455
+                  |
+          migback |
+               2  |  -.2581516   .0603264    -4.28   0.000    -.3763892    -.139914
+               3  |  -.1700329   .0501075    -3.39   0.001    -.2682417   -.0718241
+                  |
+          hh_size |   .3431473    .019508    17.59   0.000     .3049122    .3813823
+           nchild |  -.4440852   .0266616   -16.66   0.000    -.4963409   -.3918296
+        full_time |   .1087961   .0443396     2.45   0.014      .021892    .1957001
+     years_employ |   .0108698   .0046882     2.32   0.020     .0016811    .0200585
+  education_years |   .1779544   .0056847    31.30   0.000     .1668126    .1890963
+vocational_degree |   .0494363   .0342866     1.44   0.149    -.0177641    .1166368
+            _cons |   1.726629   .5238165     3.30   0.001      .699968    2.753291
+-----------------------------------------------------------------------------------
+
+. estimates store ppml3
+
+. 
+. * Model 4: + Year fixed effects
+. ppmlhdfe savings_amount interaction type_employment female age age_square i.migback //
+> /
+>     hh_size nchild full_time years_employ education_years vocational_degree, ///
+>     absorb(syear) vce(robust)
+Iteration 1:   deviance = 3.8809e+06  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.85  P   
+Iteration 2:   deviance = 3.7386e+06  eps = 3.81e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.48      
+Iteration 3:   deviance = 3.7367e+06  eps = 5.20e-04  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.36      
+Iteration 4:   deviance = 3.7367e+06  eps = 3.24e-07  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.36      
+Iteration 5:   deviance = 3.7367e+06  eps = 7.32e-13  iters = 1    tol = 1.0e-05  min(et
+> a) =  -5.36   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =     11,911
+Absorbing 1 HDFE group                            Residual df     =     11,890
+                                                  Wald chi2(13)   =    1788.55
+Deviance             =  3736682.132               Prob > chi2     =     0.0000
+Log pseudolikelihood = -1898131.619               Pseudo R2       =     0.1833
+-----------------------------------------------------------------------------------
+                  |               Robust
+   savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.1988457    .175203    -1.13   0.256    -.5422374     .144546
+  type_employment |  -.0327641   .1303952    -0.25   0.802    -.2883341    .2228058
+           female |  -.1343449   .0280908    -4.78   0.000    -.1894018    -.079288
+              age |   .0587058   .0302449     1.94   0.052    -.0005731    .1179847
+       age_square |   -.000945   .0004527    -2.09   0.037    -.0018323   -.0000577
+                  |
+          migback |
+               2  |  -.2571403   .0602171    -4.27   0.000    -.3751637    -.139117
+               3  |   -.174555    .050031    -3.49   0.000    -.2726139   -.0764961
+                  |
+          hh_size |   .3439057   .0195588    17.58   0.000     .3055712    .3822401
+           nchild |  -.4445025   .0267283   -16.63   0.000    -.4968891    -.392116
+        full_time |   .1100636    .044365     2.48   0.013     .0231099    .1970174
+     years_employ |   .0102682   .0046975     2.19   0.029     .0010613    .0194751
+  education_years |   .1774251   .0056879    31.19   0.000      .166277    .1885731
+vocational_degree |   .0500611   .0342642     1.46   0.144    -.0170954    .1172176
+            _cons |   1.675452   .5205241     3.22   0.001     .6552436    2.695661
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |         8           0           8     |
+-----------------------------------------------------+
+
+. estimates store ppml4
+
+. 
+. * Model 5: + Household fixed effects
+. ppmlhdfe savings_amount interaction post age age_square ///
+>     hh_size nchild full_time years_employ education_years, ///
+>     absorb(hid) vce(cluster hid)
+(dropped 1176 observations that are either singletons or separated by a fixed effect)
+Iteration 1:   deviance = 1.4466e+06  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -3.16  P   
+Iteration 2:   deviance = 1.2994e+06  eps = 1.13e-01  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.60      
+Iteration 3:   deviance = 1.2897e+06  eps = 7.58e-03  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.93      
+Iteration 4:   deviance = 1.2890e+06  eps = 4.99e-04  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.95      
+Iteration 5:   deviance = 1.2890e+06  eps = 2.23e-05  iters = 1    tol = 1.0e-04  min(et
+> a) =  -5.24      
+Iteration 6:   deviance = 1.2890e+06  eps = 4.48e-07  iters = 1    tol = 1.0e-05  min(et
+> a) =  -5.39      
+Iteration 7:   deviance = 1.2890e+06  eps = 1.43e-09  iters = 1    tol = 1.0e-06  min(et
+> a) =  -5.40   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 7 iterations and 7 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =     10,769
+Absorbing 1 HDFE group                            Residual df     =      1,736
+Statistics robust to heteroskedasticity           Wald chi2(9)    =     113.54
+Deviance             =  1288985.758               Prob > chi2     =     0.0000
+Log pseudolikelihood = -674296.2467               Pseudo R2       =     0.6688
+
+Number of clusters (hid)    =      1,737
+                                   (Std. Err. adjusted for 1,737 clusters in hid)
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0807209   .1751817    -0.46   0.645    -.4240708    .2626289
+           post |   .0214076   .1779545     0.12   0.904    -.3273768     .370192
+            age |   .0329626   .0542195     0.61   0.543    -.0733057    .1392309
+     age_square |  -.0004855   .0005442    -0.89   0.372     -.001552    .0005811
+        hh_size |     .25476   .0419521     6.07   0.000     .1725355    .3369845
+         nchild |  -.3655397   .0507292    -7.21   0.000    -.4649671   -.2661123
+      full_time |   .1748525   .0621761     2.81   0.005     .0529895    .2967155
+   years_employ |   .0331704   .0373684     0.89   0.375    -.0400703    .1064111
+education_years |   .1734912   .0425016     4.08   0.000     .0901896    .2567928
+          _cons |   2.161723   1.204006     1.80   0.073    -.1980847    4.521531
+---------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+         hid |      1737        1737           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store ppml5
+
+. 
+. * Model 6: Two-way fixed effects (your TWFE model)
+. ppmlhdfe savings_amount interaction ///
+>     hh_size nchild full_time years_employ education_years, ///
+>     absorb(hid syear) vce(cluster hid)
+(dropped 1176 observations that are either singletons or separated by a fixed effect)
+Iteration 1:   deviance = 1.4423e+06  eps = .         iters = 5    tol = 1.0e-04  min(et
+> a) =  -3.22  P   
+Iteration 2:   deviance = 1.2955e+06  eps = 1.13e-01  iters = 3    tol = 1.0e-04  min(et
+> a) =  -4.72      
+Iteration 3:   deviance = 1.2857e+06  eps = 7.58e-03  iters = 3    tol = 1.0e-04  min(et
+> a) =  -5.08      
+Iteration 4:   deviance = 1.2851e+06  eps = 5.01e-04  iters = 3    tol = 1.0e-04  min(et
+> a) =  -5.10      
+Iteration 5:   deviance = 1.2851e+06  eps = 2.24e-05  iters = 2    tol = 1.0e-04  min(et
+> a) =  -5.25      
+Iteration 6:   deviance = 1.2850e+06  eps = 4.51e-07  iters = 2    tol = 1.0e-05  min(et
+> a) =  -5.40      
+Iteration 7:   deviance = 1.2850e+06  eps = 1.43e-09  iters = 2    tol = 1.0e-06  min(et
+> a) =  -5.42   S  
+Iteration 8:   deviance = 1.2850e+06  eps = 5.07e-14  iters = 2    tol = 1.0e-08  min(et
+> a) =  -5.42   S  
+Iteration 9:   deviance = 1.2850e+06  eps = 0.00e+00  iters = 1    tol = 1.0e-09  min(et
+> a) =  -5.42   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 9 iterations and 23 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =     10,769
+Absorbing 2 HDFE groups                           Residual df     =      1,736
+Statistics robust to heteroskedasticity           Wald chi2(6)    =      94.52
+Deviance             =  1285049.768               Prob > chi2     =     0.0000
+Log pseudolikelihood = -672328.2515               Pseudo R2       =     0.6697
+
+Number of clusters (hid)    =      1,737
+                                   (Std. Err. adjusted for 1,737 clusters in hid)
+---------------------------------------------------------------------------------
+                |               Robust
+ savings_amount |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.0700482   .1726801    -0.41   0.685     -.408495    .2683986
+        hh_size |   .2582989   .0420755     6.14   0.000     .1758325    .3407654
+         nchild |  -.3712115   .0508882    -7.29   0.000    -.4709506   -.2714724
+      full_time |   .1883583   .0614573     3.06   0.002     .0679042    .3088124
+   years_employ |   .0115715   .0381606     0.30   0.762    -.0632219     .086365
+education_years |   .1766929   .0422063     4.19   0.000       .09397    .2594157
+          _cons |   2.913601   .7924419     3.68   0.000     1.360443    4.466758
+---------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+         hid |      1737        1737           0    *|
+       syear |         8           1           7     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store ppml6
+
+. 
+. 
+. 
+. 
+. * Display Results Side-by-Side
+. esttab ppml1 ppml2 ppml3 ppml4 ppml5 ppml6 using "${MY_OUTPUT_OUT}ppml_amount_06.txt",
+>  ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Effect of the 2007 Pension Reform on Amount Saved") ///
+>     label stats(r2_p N, fmt( 3 0) labels("Pseudo R-squared" "N"))
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_ppml
+> /ppml_amount_06.txt)
+
+. 
+. 
+. esttab ppml1 ppml2 ppml3 ppml4 ppml5 ppml6 using "${MY_OUTPUT_OUT}ppml_amount_06.tex",
+>  ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Effect of the 2007 Pension Reform on Amount Saved") ///
+>     label booktabs
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_ppml
+> /ppml_amount_06.tex)
+
+. 
+.         
+. 
+. 
+. 
+. ***********************************************
+. * Intensive Margin: saving rate
+. ***********************************************
+. 
+. /* check
+> tab household_income if household_income < 10, m
+> tab savings_amount if savings_amount < 10, m
+> tab household_income if household_income ==.
+> */
+. 
+. drop if household_income == 0
+(0 observations deleted)
+
+. drop if household_income == .
+(345 observations deleted)
+
+. 
+. gen rate = savings_amount/household_income
+
+. 
+. tab rate if rate>1
+
+       rate |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   2.133333 |          1      100.00      100.00
+------------+-----------------------------------
+      Total |          1      100.00
+
+. drop if rate > 1
+(1 observation deleted)
+
+. sum rate, d
+
+                            rate
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs              11,691
+25%            0              0       Sum of Wgt.      11,691
+
+50%        .0625                      Mean           .0889272
+                        Largest       Std. Dev.      .1034625
+75%      .131579        .734375
+90%     .2222222       .7407407       Variance       .0107045
+95%           .3       .7638889       Skewness        1.81907
+99%     .4545455       .8571429       Kurtosis       7.383612
+
+. 
+. 
+. 
+. *** PPML
+. 
+. * Column (1): No controls
+. ppmlhdfe rate interaction post type_employment, ///
+>     absorb() vce(robust)
+Iteration 1:   deviance = 1.3385e+03  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.13  P   
+Iteration 2:   deviance = 1.3163e+03  eps = 1.69e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.27      
+Iteration 3:   deviance = 1.3162e+03  eps = 7.61e-05  iters = 1    tol = 1.0e-04  min(et
+> a) =  -0.28      
+Iteration 4:   deviance = 1.3162e+03  eps = 1.91e-09  iters = 1    tol = 1.0e-05  min(et
+> a) =  -0.28      
+Iteration 5:   deviance = 1.3162e+03  eps = 1.43e-16  iters = 1    tol = 1.0e-06  min(et
+> a) =  -0.28   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+PPML regression                                   No. of obs      =     11,691
+                                                  Residual df     =     11,687
+                                                  Wald chi2(3)    =       4.46
+Deviance             =  1316.175606               Prob > chi2     =     0.2156
+Log pseudolikelihood = -3113.057682               Pseudo R2       =     0.0001
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.2764829   .1557737    -1.77   0.076    -.5817937    .0288279
+           post |   .2464558   .1541683     1.60   0.110    -.0557085    .5486201
+type_employment |   .1503033   .1235628     1.22   0.224    -.0918754     .392482
+          _cons |  -2.552781   .1223205   -20.87   0.000    -2.792525   -2.313037
+---------------------------------------------------------------------------------
+
+. estimates store ppmlr1
+
+. 
+. * Column (2): Add demographics
+. ppmlhdfe rate interaction post type_employment female age age_square i.migback ///
+>     hh_size nchild, ///
+>     absorb() vce(robust)
+Iteration 1:   deviance = 1.2720e+03  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.28  P   
+Iteration 2:   deviance = 1.2490e+03  eps = 1.84e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.52      
+Iteration 3:   deviance = 1.2489e+03  eps = 8.82e-05  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.54      
+Iteration 4:   deviance = 1.2489e+03  eps = 2.79e-09  iters = 1    tol = 1.0e-05  min(et
+> a) =  -2.54      
+Iteration 5:   deviance = 1.2489e+03  eps = 0.00e+00  iters = 1    tol = 1.0e-06  min(et
+> a) =  -2.54   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+PPML regression                                   No. of obs      =     11,689
+                                                  Residual df     =     11,678
+                                                  Wald chi2(10)   =     563.00
+Deviance             =  1248.911992               Prob > chi2     =     0.0000
+Log pseudolikelihood = -3078.873267               Pseudo R2       =     0.0109
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.2916711   .1557979    -1.87   0.061    -.5970295    .0136873
+           post |   .3065878   .1545399     1.98   0.047     .0036952    .6094805
+type_employment |   .1758859   .1238457     1.42   0.156    -.0668472    .4186191
+         female |  -.1358433   .0215641    -6.30   0.000    -.1781082   -.0935785
+            age |   .1072725    .023906     4.49   0.000     .0604176    .1541275
+     age_square |  -.0016628   .0003524    -4.72   0.000    -.0023535   -.0009721
+                |
+        migback |
+             2  |  -.4470472   .0457229    -9.78   0.000    -.5366626   -.3574319
+             3  |  -.1964601   .0429799    -4.57   0.000    -.2806991   -.1122211
+                |
+        hh_size |    .009789   .0179318     0.55   0.585    -.0253568    .0449347
+         nchild |  -.2216861   .0236208    -9.39   0.000     -.267982   -.1753902
+          _cons |  -4.039754   .4236229    -9.54   0.000     -4.87004   -3.209469
+---------------------------------------------------------------------------------
+
+. estimates store ppmlr2
+
+. 
+. * Column (3): Add labor + education
+. ppmlhdfe rate interaction post type_employment female age age_square i.migback ///
+>     hh_size nchild full_time years_employ education_years vocational_degree, ///
+>     absorb() vce(robust)
+Iteration 1:   deviance = 1.1633e+03  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.39  P   
+Iteration 2:   deviance = 1.1407e+03  eps = 1.98e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.63      
+Iteration 3:   deviance = 1.1406e+03  eps = 9.74e-05  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.65      
+Iteration 4:   deviance = 1.1406e+03  eps = 3.57e-09  iters = 1    tol = 1.0e-05  min(et
+> a) =  -2.65      
+Iteration 5:   deviance = 1.1406e+03  eps = 1.65e-16  iters = 1    tol = 1.0e-06  min(et
+> a) =  -2.65   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+PPML regression                                   No. of obs      =     11,566
+                                                  Residual df     =     11,551
+                                                  Wald chi2(14)   =    1635.34
+Deviance             =  1140.579306               Prob > chi2     =     0.0000
+Log pseudolikelihood = -3002.000157               Pseudo R2       =     0.0258
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.2595614   .1540833    -1.68   0.092    -.5615592    .0424363
+             post |   .2645894   .1528224     1.73   0.083    -.0349371    .5641159
+  type_employment |   .1980821   .1222903     1.62   0.105    -.0416024    .4377666
+           female |  -.1373188    .023028    -5.96   0.000    -.1824528   -.0921848
+              age |  -.0058338   .0237152    -0.25   0.806    -.0523146    .0406471
+       age_square |  -.0002115   .0003455    -0.61   0.540    -.0008886    .0004657
+                  |
+          migback |
+               2  |  -.2248836   .0449124    -5.01   0.000    -.3129102   -.1368569
+               3  |  -.1397172   .0415644    -3.36   0.001    -.2211819   -.0582525
+                  |
+          hh_size |    .031181   .0180099     1.73   0.083    -.0041178    .0664797
+           nchild |  -.2033696   .0233802    -8.70   0.000    -.2491939   -.1575453
+        full_time |   .0946127   .0355452     2.66   0.008     .0249454      .16428
+     years_employ |    .011555   .0036448     3.17   0.002     .0044114    .0186987
+  education_years |   .1234361   .0045483    27.14   0.000     .1145215    .1323506
+vocational_degree |   .1054358   .0263893     4.00   0.000     .0537137    .1571579
+            _cons |  -3.941466   .4214662    -9.35   0.000    -4.767524   -3.115407
+-----------------------------------------------------------------------------------
+
+. estimates store ppmlr3
+
+. 
+. * Column (4): Add year fixed effects
+. ppmlhdfe rate interaction type_employment female age age_square i.migback ///
+>     hh_size nchild full_time years_employ education_years vocational_degree, ///
+>     absorb(syear) vce(robust)
+Iteration 1:   deviance = 1.1617e+03  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.43  P   
+Iteration 2:   deviance = 1.1390e+03  eps = 1.99e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.67      
+Iteration 3:   deviance = 1.1389e+03  eps = 9.79e-05  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.69      
+Iteration 4:   deviance = 1.1389e+03  eps = 3.63e-09  iters = 1    tol = 1.0e-05  min(et
+> a) =  -2.69      
+Iteration 5:   deviance = 1.1389e+03  eps = 0.00e+00  iters = 1    tol = 1.0e-06  min(et
+> a) =  -2.69   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 5 iterations and 5 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =     11,566
+Absorbing 1 HDFE group                            Residual df     =     11,545
+                                                  Wald chi2(13)   =    1638.09
+Deviance             =  1138.935352               Prob > chi2     =     0.0000
+Log pseudolikelihood = -3001.178181               Pseudo R2       =     0.0261
+-----------------------------------------------------------------------------------
+                  |               Robust
+             rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   -.259039   .1538836    -1.68   0.092    -.5606452    .0425672
+  type_employment |   .1955212   .1219653     1.60   0.109    -.0435263    .4345688
+           female |  -.1390698   .0230135    -6.04   0.000    -.1841754   -.0939642
+              age |   .0033862   .0239548     0.14   0.888    -.0435643    .0503368
+       age_square |  -.0003579   .0003494    -1.02   0.306    -.0010426    .0003269
+                  |
+          migback |
+               2  |  -.2244163   .0448188    -5.01   0.000    -.3122595    -.136573
+               3  |  -.1431832   .0415105    -3.45   0.001    -.2245423   -.0618242
+                  |
+          hh_size |   .0312474   .0180525     1.73   0.083    -.0041348    .0666296
+           nchild |  -.2029334   .0234512    -8.65   0.000    -.2488969   -.1569699
+        full_time |   .0956356   .0355272     2.69   0.007     .0260035    .1652677
+     years_employ |   .0110796   .0036445     3.04   0.002     .0039365    .0182227
+  education_years |    .123054   .0045445    27.08   0.000     .1141469     .131961
+vocational_degree |    .106289   .0263851     4.03   0.000     .0545751    .1580029
+            _cons |  -3.910408   .4162873    -9.39   0.000    -4.726317     -3.0945
+-----------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+       syear |         8           0           8     |
+-----------------------------------------------------+
+
+. estimates store ppmlr4
+
+. 
+. * Column (5): Add household fixed effects
+. ppmlhdfe rate interaction post age age_square ///
+>     hh_size nchild full_time years_employ education_years, ///
+>     absorb(hid) vce(cluster hid)
+(dropped 1133 observations that are either singletons or separated by a fixed effect)
+Iteration 1:   deviance = 4.6962e+02  eps = .         iters = 1    tol = 1.0e-04  min(et
+> a) =  -1.85  P   
+Iteration 2:   deviance = 4.4052e+02  eps = 6.61e-02  iters = 1    tol = 1.0e-04  min(et
+> a) =  -2.78      
+Iteration 3:   deviance = 4.3861e+02  eps = 4.36e-03  iters = 1    tol = 1.0e-04  min(et
+> a) =  -3.64      
+Iteration 4:   deviance = 4.3849e+02  eps = 2.83e-04  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.30      
+Iteration 5:   deviance = 4.3848e+02  eps = 9.80e-06  iters = 1    tol = 1.0e-04  min(et
+> a) =  -4.65      
+Iteration 6:   deviance = 4.3848e+02  eps = 1.40e-07  iters = 1    tol = 1.0e-05  min(et
+> a) =  -4.73   S  
+Iteration 7:   deviance = 4.3848e+02  eps = 1.72e-10  iters = 1    tol = 1.0e-07  min(et
+> a) =  -4.73   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 7 iterations and 7 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =     10,467
+Absorbing 1 HDFE group                            Residual df     =      1,710
+Statistics robust to heteroskedasticity           Wald chi2(9)    =      59.15
+Deviance             =  438.4822448               Prob > chi2     =     0.0000
+Log pseudolikelihood = -2650.474852               Pseudo R2       =     0.1107
+
+Number of clusters (hid)    =      1,711
+                                   (Std. Err. adjusted for 1,711 clusters in hid)
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |  -.1157198   .1258099    -0.92   0.358    -.3623026     .130863
+           post |   .0514535   .1268794     0.41   0.685    -.1972256    .3001326
+            age |  -.0355865   .0471892    -0.75   0.451    -.1280757    .0569027
+     age_square |   .0001535   .0004588     0.33   0.738    -.0007457    .0010528
+        hh_size |  -.0160514   .0339778    -0.47   0.637    -.0826466    .0505438
+         nchild |  -.1210723   .0382282    -3.17   0.002    -.1959982   -.0461463
+      full_time |   .1139008   .0536663     2.12   0.034     .0087169    .2190847
+   years_employ |   .0365293   .0311115     1.17   0.240    -.0244481    .0975067
+education_years |   .0952181   .0426101     2.23   0.025     .0117038    .1787324
+          _cons |  -2.639203   1.049097    -2.52   0.012    -4.695395   -.5830113
+---------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+         hid |      1711        1711           0    *|
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store ppmlr5
+
+. 
+. * Column (6): Two-way fixed effects
+. ppmlhdfe rate interaction ///
+>     hh_size nchild full_time years_employ education_years, ///
+>     absorb(hid syear) vce(cluster hid)
+(dropped 1133 observations that are either singletons or separated by a fixed effect)
+Iteration 1:   deviance = 4.6851e+02  eps = .         iters = 5    tol = 1.0e-04  min(et
+> a) =  -1.84  P   
+Iteration 2:   deviance = 4.3941e+02  eps = 6.62e-02  iters = 3    tol = 1.0e-04  min(et
+> a) =  -2.79      
+Iteration 3:   deviance = 4.3749e+02  eps = 4.38e-03  iters = 3    tol = 1.0e-04  min(et
+> a) =  -3.65      
+Iteration 4:   deviance = 4.3737e+02  eps = 2.85e-04  iters = 3    tol = 1.0e-04  min(et
+> a) =  -4.32      
+Iteration 5:   deviance = 4.3736e+02  eps = 9.85e-06  iters = 2    tol = 1.0e-04  min(et
+> a) =  -4.66      
+Iteration 6:   deviance = 4.3736e+02  eps = 1.40e-07  iters = 2    tol = 1.0e-05  min(et
+> a) =  -4.74   S  
+Iteration 7:   deviance = 4.3736e+02  eps = 1.72e-10  iters = 2    tol = 1.0e-07  min(et
+> a) =  -4.74   S  
+Iteration 8:   deviance = 4.3736e+02  eps = 4.35e-16  iters = 2    tol = 1.0e-08  min(et
+> a) =  -4.74   S O
+----------------------------------------------------------------------------------------
+> --------------------
+(legend: p: exact partial-out   s: exact solver   h: step-halving   o: epsilon below tol
+> erance)
+Converged in 8 iterations and 22 HDFE sub-iterations (tol = 1.0e-08)
+
+HDFE PPML regression                              No. of obs      =     10,467
+Absorbing 2 HDFE groups                           Residual df     =      1,710
+Statistics robust to heteroskedasticity           Wald chi2(6)    =      48.91
+Deviance             =  437.3627611               Prob > chi2     =     0.0000
+Log pseudolikelihood =  -2649.91511               Pseudo R2       =     0.1109
+
+Number of clusters (hid)    =      1,711
+                                   (Std. Err. adjusted for 1,711 clusters in hid)
+---------------------------------------------------------------------------------
+                |               Robust
+           rate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   -.114114   .1258799    -0.91   0.365    -.3608342    .1326061
+        hh_size |  -.0136369   .0339051    -0.40   0.688    -.0800896    .0528159
+         nchild |  -.1223515   .0383399    -3.19   0.001    -.1974964   -.0472066
+      full_time |   .1124649   .0531761     2.11   0.034     .0082417     .216688
+   years_employ |   .0486575   .0312462     1.56   0.119    -.0125839     .109899
+education_years |   .0944882   .0426805     2.21   0.027      .010836    .1781405
+          _cons |  -3.787049   .7169898    -5.28   0.000    -5.192324   -2.381775
+---------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+         hid |      1711        1711           0    *|
+       syear |         8           1           7     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. estimates store ppmlr6
+
+. 
+. 
+. 
+. 
+. 
+. * Text output
+. esttab ppmlr1 ppmlr2 ppmlr3 ppmlr4 ppmlr5 ppmlr6 using ///
+>     "${MY_OUTPUT_OUT}ppml_rate_06.txt", replace se b(3) ///
+>     star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Effect of the 2006 Pension Reform on Saving Rate") ///
+>         label stats(r2_p N, fmt( 3 0) labels("Pseudo R-squared" "N"))
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_ppml
+> /ppml_rate_06.txt)
+
+. 
+. * LaTeX output
+. esttab ppmlr1 ppmlr2 ppmlr3 ppmlr4 ppmlr5 ppmlr6 using ///
+>     "${MY_OUTPUT_OUT}ppml_rate_06.tex", replace se b(3) ///
+>     star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("PPML: Effect of the 2006 Pension Reform on Saving Rate") ///
+>     label booktabs
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_ppml
+> /ppml_rate_06.tex)
+
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_PPML.log
+  log type:  text
+ closed on:  28 Jul 2025, 15:33:06
+----------------------------------------------------------------------------------------

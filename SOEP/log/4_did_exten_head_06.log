@@ -1,0 +1,408 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_exten_hea
+> d_06.log
+  log type:  text
+ opened on:  28 Jul 2025, 23:58:57
+
+. 
+. 
+. ***********************************************
+. * Extensive Margin: If Savings
+. ***********************************************
+. use "${OUT_DATA}data_head.dta", clear
+
+. 
+. * To be consistent with GSOEP, use only year 2003-2009
+. * keep if (syear >= 2005) & (syear <=2009)
+.  keep if (syear >= 2003) & (syear <=2010)
+(86,704 observations deleted)
+
+. *
+. 
+. 
+. * Generate Post-Reform Indicator
+. gen post = (syear >= 2006)
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. 
+. *** compositional change check
+. * 1. define cutoff year
+. local cutoff = 2006
+
+. 
+. * 2. Compute for each pid their first and last survey year
+. egen min_year = min(syear), by(pid)
+
+. egen max_year = max(syear), by(pid)
+
+. 
+. * 3. Create a compositional‐change indicator
+. gen byte comp_status = .
+(19,489 missing values generated)
+
+. replace comp_status = 1 if max_year <= `cutoff'-1   // only pre‐reform
+(955 real changes made)
+
+. replace comp_status = 2 if min_year >= `cutoff'    // only post‐reform
+(6,033 real changes made)
+
+. replace comp_status = 3 if max_year >= `cutoff' & min_year <= `cutoff'-1  /// both per
+> iods
+> 
+(12,501 real changes made)
+
+. * 4. Tabulate counts
+. tab comp_status,m
+
+comp_status |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        955        4.90        4.90
+          2 |      6,033       30.96       35.86
+          3 |     12,501       64.14      100.00
+------------+-----------------------------------
+      Total |     19,489      100.00
+
+. 
+. * 5. keep only balanced heads
+.  keep if comp_status == 3
+(6,988 observations deleted)
+
+. 
+. 
+. 
+. 
+. 
+. 
+.         
+.         
+.         
+. /*      
+> *** Logit Model
+> logit if_savings interaction post type_employment, robust
+> estimates store logit1
+> margins, dydx(interaction)
+> 
+> logit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, robust
+> estimates store logit2
+> 
+> logit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, robus
+> t
+> estimates store logit3
+> 
+> logit if_savings interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, robust
+> estimates store logit4
+> 
+> *** add household fe
+> xtset hid syear
+> xtlogit if_savings interaction post age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, fe
+> estimates store logit5
+> 
+> *** add household and year fe
+> xtset hid syear
+> xtlogit if_savings interaction age age_square ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, fe
+> estimates store logit6
+> 
+> 
+> * Display Results Side-by-Side
+> esttab logit1 logit2 logit3 logit4 logit5 logit6 using "${OUT_OUTPUT}did_if_savings_lo
+> git_06.txt", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Effect of the 2006 Pension Reform on Savings (Logit) 06 c
+> ut-off") ///
+>     label
+> 
+> esttab logit1 logit2 logit3 logit4 logit5 logit6 using "${OUT_OUTPUT}did_if_savings_lo
+> git_06.tex", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Effect of the 2006 Pension Reform on Savings (Logit) 06 c
+> ut-off") ///
+>     label booktabs drop(*.syear)
+> */
+.         
+. 
+. *** Probit Model
+. //probit if_savings interaction post type_employment, robust
+. //estimates store probit
+. probit if_savings interaction post type_employment, cluster(hid)
+
+Iteration 0:   log pseudolikelihood = -7648.9797  
+Iteration 1:   log pseudolikelihood = -7646.0611  
+Iteration 2:   log pseudolikelihood = -7646.0607  
+
+Probit regression                               Number of obs     =     12,401
+                                                Wald chi2(3)      =       3.21
+                                                Prob > chi2       =     0.3600
+Log pseudolikelihood = -7646.0607               Pseudo R2         =     0.0004
+
+                                   (Std. Err. adjusted for 2,063 clusters in hid)
+---------------------------------------------------------------------------------
+                |               Robust
+     if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   .0089998     .16261     0.06   0.956      -.30971    .3277096
+           post |   .0241326   .1609373     0.15   0.881    -.2912987     .339564
+type_employment |   .1325819   .1486239     0.89   0.372    -.1587155    .4238794
+          _cons |   .3554901   .1463699     2.43   0.015     .0686104    .6423697
+---------------------------------------------------------------------------------
+
+. estimates store probit1
+
+. estpost margins, dydx(interaction)
+
+Average marginal effects                        Number of obs     =     12,401
+Model VCE    : Robust
+
+Expression   : Pr(if_savings), predict()
+dy/dx w.r.t. : interaction
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ interaction |    .003161   .0571135     0.06   0.956    -.1087795    .1151014
+------------------------------------------------------------------------------
+
+. estimates store ame1
+
+. 
+. 
+. probit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, cluster(hid)
+
+Iteration 0:   log pseudolikelihood = -7647.5116  
+Iteration 1:   log pseudolikelihood = -7476.2489  
+Iteration 2:   log pseudolikelihood =  -7476.186  
+Iteration 3:   log pseudolikelihood =  -7476.186  
+
+Probit regression                               Number of obs     =     12,397
+                                                Wald chi2(10)     =     110.89
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood =  -7476.186               Pseudo R2         =     0.0224
+
+                                   (Std. Err. adjusted for 2,063 clusters in hid)
+---------------------------------------------------------------------------------
+                |               Robust
+     if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   -.057545   .1625807    -0.35   0.723    -.3761973    .2611072
+           post |    .100979   .1621542     0.62   0.533    -.2168375    .4187954
+type_employment |   .2052163   .1503173     1.37   0.172    -.0894002    .4998329
+         female |   -.103596    .046205    -2.24   0.025    -.1941561   -.0130359
+            age |   .1437041   .0382937     3.75   0.000     .0686499    .2187583
+     age_square |  -.0021088   .0005656    -3.73   0.000    -.0032173   -.0010003
+                |
+        migback |
+             2  |  -.5112183   .0730336    -7.00   0.000    -.6543616   -.3680749
+             3  |  -.1915777   .0839981    -2.28   0.023    -.3562109   -.0269445
+                |
+        hh_size |   .1102021   .0365862     3.01   0.003     .0384945    .1819096
+         nchild |  -.2169108   .0446257    -4.86   0.000    -.3043755   -.1294461
+          _cons |  -2.098092   .6706351    -3.13   0.002    -3.412512   -.7836711
+---------------------------------------------------------------------------------
+
+. estimates store probit2
+
+. estpost margins, dydx(interaction)
+
+Average marginal effects                        Number of obs     =     12,397
+Model VCE    : Robust
+
+Expression   : Pr(if_savings), predict()
+dy/dx w.r.t. : interaction
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ interaction |  -.0197383   .0557634    -0.35   0.723    -.1290326    .0895559
+------------------------------------------------------------------------------
+
+. estimates store ame2
+
+. 
+. 
+. probit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, clust
+> er(hid)
+
+Iteration 0:   log pseudolikelihood =  -7562.584  
+Iteration 1:   log pseudolikelihood = -7001.4257  
+Iteration 2:   log pseudolikelihood = -6999.1835  
+Iteration 3:   log pseudolikelihood = -6999.1835  
+
+Probit regression                               Number of obs     =     12,272
+                                                Wald chi2(14)     =     354.05
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -6999.1835               Pseudo R2         =     0.0745
+
+                                     (Std. Err. adjusted for 2,036 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0176031   .1685824    -0.10   0.917    -.3480186    .3128123
+             post |   .0432032   .1683433     0.26   0.797    -.2867436      .37315
+  type_employment |   .2774583    .144935     1.91   0.056     -.006609    .5615256
+           female |  -.0565403   .0515318    -1.10   0.273    -.1575408    .0444601
+              age |   .0423286   .0400254     1.06   0.290    -.0361197    .1207769
+       age_square |  -.0009362   .0005812    -1.61   0.107    -.0020754     .000203
+                  |
+          migback |
+               2  |  -.2586309   .0734957    -3.52   0.000    -.4026798    -.114582
+               3  |  -.0742907    .085825    -0.87   0.387    -.2425047    .0939232
+                  |
+          hh_size |   .1363083   .0367226     3.71   0.000     .0643332    .2082834
+           nchild |  -.1943296   .0454527    -4.28   0.000    -.2834152    -.105244
+        full_time |   .1828115   .0631664     2.89   0.004     .0590077    .3066153
+     years_employ |   .0198018   .0079925     2.48   0.013     .0041368    .0354668
+  education_years |   .1559891   .0107021    14.58   0.000     .1350134    .1769648
+vocational_degree |   .2478783   .0586493     4.23   0.000     .1329278    .3628288
+            _cons |   -2.78236   .7062149    -3.94   0.000    -4.166516   -1.398205
+-----------------------------------------------------------------------------------
+
+. estimates store probit3
+
+. estpost margins, dydx(interaction)
+
+Average marginal effects                        Number of obs     =     12,272
+Model VCE    : Robust
+
+Expression   : Pr(if_savings), predict()
+dy/dx w.r.t. : interaction
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ interaction |  -.0056982   .0545692    -0.10   0.917    -.1126518    .1012554
+------------------------------------------------------------------------------
+
+. estimates store ame3
+
+. 
+. 
+. 
+. probit if_savings interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, cluster(hid)
+
+Iteration 0:   log pseudolikelihood =  -7562.584  
+Iteration 1:   log pseudolikelihood = -6993.0491  
+Iteration 2:   log pseudolikelihood = -6990.7827  
+Iteration 3:   log pseudolikelihood = -6990.7827  
+
+Probit regression                               Number of obs     =     12,272
+                                                Wald chi2(20)     =     375.74
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -6990.7827               Pseudo R2         =     0.0756
+
+                                     (Std. Err. adjusted for 2,036 clusters in hid)
+-----------------------------------------------------------------------------------
+                  |               Robust
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |  -.0212016   .1690892    -0.13   0.900    -.3526104    .3102072
+  type_employment |   .2760311   .1452224     1.90   0.057    -.0085996    .5606618
+           female |  -.0583044   .0516181    -1.13   0.259     -.159474    .0428652
+              age |   .0575139   .0411847     1.40   0.163    -.0232066    .1382345
+       age_square |  -.0011913   .0006035    -1.97   0.048    -.0023741   -8.52e-06
+                  |
+          migback |
+               2  |  -.2569151   .0734417    -3.50   0.000    -.4008582    -.112972
+               3  |   -.080026    .086085    -0.93   0.353    -.2487496    .0886976
+                  |
+          hh_size |   .1353021   .0367269     3.68   0.000     .0633187    .2072854
+           nchild |  -.1923625   .0454617    -4.23   0.000    -.2814658   -.1032592
+        full_time |    .183687   .0632853     2.90   0.004     .0596502    .3077239
+     years_employ |   .0195948   .0080138     2.45   0.014      .003888    .0353015
+  education_years |   .1557109   .0107307    14.51   0.000     .1346792    .1767427
+vocational_degree |   .2481419   .0587731     4.22   0.000     .1329486    .3633351
+                  |
+            syear |
+            2004  |  -.0114135   .0372211    -0.31   0.759    -.0843656    .0615385
+            2005  |     .03591   .0393647     0.91   0.362    -.0412434    .1130633
+            2006  |  -.0417783   .1713949    -0.24   0.807    -.3777061    .2941496
+            2007  |   .0759146   .1727076     0.44   0.660    -.2625861    .4144152
+            2008  |   .0828448   .1735963     0.48   0.633    -.2573977    .4230874
+            2009  |    .103319   .1759711     0.59   0.557    -.2415781    .4482161
+            2010  |   .1501087   .1780939     0.84   0.399    -.1989489    .4991664
+                  |
+            _cons |  -3.000923   .7188109    -4.17   0.000    -4.409766   -1.592079
+-----------------------------------------------------------------------------------
+
+. estimates store probit4
+
+. estpost margins, dydx(interaction)
+
+Average marginal effects                        Number of obs     =     12,272
+Model VCE    : Robust
+
+Expression   : Pr(if_savings), predict()
+dy/dx w.r.t. : interaction
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ interaction |  -.0068536   .0546578    -0.13   0.900     -.113981    .1002737
+------------------------------------------------------------------------------
+
+. estimates store ame4
+
+. 
+. 
+. 
+. /* fixed effect fails for probit model
+> xtprobit if_savings interaction nchild full_time years_employ education_years ///
+>         vocational_degree, fe
+> estimates store probit5
+> */
+. 
+. * Display Results Side-by-Side
+. esttab probit1 probit2 probit3 probit4 using "${OUT_OUTPUT}did_if_savings_probit_06.tx
+> t", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Effect of the 2006 Pension Reform on Savings (Probit) 06 
+> cut-off") ///
+>     label stats(ll r2_p N, fmt(2 3 0) labels("Log-Likelihood" "Pseudo R-squared" "N"))
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_exte
+> n_head/did_if_savings_probit_06.txt)
+
+. 
+. esttab probit1 probit2 probit3 probit4 using "${OUT_OUTPUT}did_if_savings_probit_06.te
+> x", ///
+>     replace se b(3) star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Extensive Margin: Effect of the 2006 Pension Reform on Savings (Probit) 06 
+> cut-off") ///
+>     label booktabs drop(*.syear)
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_exte
+> n_head/did_if_savings_probit_06.tex)
+
+.         
+. esttab ame1 ame2 ame3 ame4 using "${OUT_OUTPUT}ame_probit.txt", ///
+>     replace b(3) se star(* 0.10 ** 0.05 *** 0.01) ///
+>     title("Average Marginal Effects (Probit Models)") ///
+>     label nodepvars nonumber
+(output written to /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/output/4_exte
+> n_head/ame_probit.txt)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_exten_hea
+> d_06.log
+  log type:  text
+ closed on:  28 Jul 2025, 23:59:00
+----------------------------------------------------------------------------------------

@@ -1,0 +1,364 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/angelxu/Desktop/thesis/data/SOEP/reform analysis/log/4_did_exten_hea
+> d.log
+  log type:  text
+ opened on:  28 May 2025, 14:45:23
+
+. 
+. 
+. ***********************************************
+. * Extensive Margin: If Savings
+. ***********************************************
+. use "${OUT_DATA}data_head.dta", clear
+
+. 
+. * Generate Post-Reform Indicator
+. gen post = syear > 2006
+
+. 
+. * Generate Interaction Term for DiD
+. gen interaction = post * type_employment
+
+. 
+. 
+. 
+. *** compositional change check
+. * 1. define cutoff year
+. local cutoff = 2007
+
+. 
+. * 2. Compute for each pid their first and last survey year
+. egen min_year = min(syear), by(pid)
+
+. egen max_year = max(syear), by(pid)
+
+. 
+. * 3. Create a compositional‐change indicator
+. gen byte comp_status = .
+(106,193 missing values generated)
+
+. replace comp_status = 1 if max_year <= `cutoff'-1   // only pre‐reform
+(6,500 real changes made)
+
+. replace comp_status = 2 if min_year >= `cutoff'    // only post‐reform
+(68,579 real changes made)
+
+. replace comp_status = 3 if max_year >= `cutoff' & min_year <= `cutoff'-1  /// both per
+> iods
+> 
+(31,114 real changes made)
+
+. * 4. Tabulate counts
+. tab comp_status,m
+
+comp_status |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      6,500        6.12        6.12
+          2 |     68,579       64.58       70.70
+          3 |     31,114       29.30      100.00
+------------+-----------------------------------
+      Total |    106,193      100.00
+
+. 
+. * 5. keep only balanced heads
+. keep if comp_status == 3
+(75,079 observations deleted)
+
+. 
+. 
+. 
+. 
+.         
+.         
+.         
+. *** Logit Model
+. logit if_savings interaction post type_employment, robust
+
+Iteration 0:   log pseudolikelihood = -17857.565  
+Iteration 1:   log pseudolikelihood = -17786.863  
+Iteration 2:   log pseudolikelihood = -17786.765  
+Iteration 3:   log pseudolikelihood = -17786.765  
+
+Logistic regression                             Number of obs     =     30,766
+                                                Wald chi2(3)      =     141.76
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -17786.765               Pseudo R2         =     0.0040
+
+---------------------------------------------------------------------------------
+                |               Robust
+     if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   .1018853   .1557305     0.65   0.513    -.2033409    .4071115
+           post |   .2036318   .1534957     1.33   0.185    -.0972143    .5044779
+type_employment |   .1281368   .1206064     1.06   0.288    -.1082475    .3645211
+          _cons |   .7166777   .1190606     6.02   0.000     .4833231    .9500322
+---------------------------------------------------------------------------------
+
+. estimates store logit1
+
+. margins, dydx(interaction)
+
+Average marginal effects                        Number of obs     =     30,766
+Model VCE    : Robust
+
+Expression   : Pr(if_savings), predict()
+dy/dx w.r.t. : interaction
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ interaction |   .0198563   .0303496     0.65   0.513    -.0396279    .0793405
+------------------------------------------------------------------------------
+
+. 
+. logit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild, robust
+
+Iteration 0:   log pseudolikelihood = -17740.288  
+Iteration 1:   log pseudolikelihood = -17394.212  
+Iteration 2:   log pseudolikelihood = -17389.575  
+Iteration 3:   log pseudolikelihood = -17389.574  
+
+Logistic regression                             Number of obs     =     30,577
+                                                Wald chi2(10)     =     635.48
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -17389.574               Pseudo R2         =     0.0198
+
+---------------------------------------------------------------------------------
+                |               Robust
+     if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+    interaction |   .1818146    .158591     1.15   0.252     -.129018    .4926472
+           post |   .0007993   .1575658     0.01   0.996    -.3080239    .3096225
+type_employment |   .1495328   .1229672     1.22   0.224    -.0914785     .390544
+         female |   -.138311   .0269212    -5.14   0.000    -.1910755   -.0855465
+            age |  -.0296082   .0158627    -1.87   0.062    -.0606985    .0014821
+     age_square |   .0005822   .0002072     2.81   0.005     .0001761    .0009882
+                |
+        migback |
+             2  |  -.6378876   .0424553   -15.02   0.000    -.7210984   -.5546768
+             3  |   -.247617   .0519475    -4.77   0.000    -.3494323   -.1458017
+                |
+        hh_size |   .1773427    .027456     6.46   0.000     .1235299    .2311555
+         nchild |  -.3478527   .0346559   -10.04   0.000     -.415777   -.2799283
+          _cons |   1.008693   .3258937     3.10   0.002     .3699531    1.647433
+---------------------------------------------------------------------------------
+
+. estimates store logit2
+
+. 
+. logit if_savings interaction post type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree, robus
+> t
+
+Iteration 0:   log pseudolikelihood = -17486.856  
+Iteration 1:   log pseudolikelihood = -16427.789  
+Iteration 2:   log pseudolikelihood = -16396.532  
+Iteration 3:   log pseudolikelihood = -16396.411  
+Iteration 4:   log pseudolikelihood = -16396.411  
+
+Logistic regression                             Number of obs     =     30,148
+                                                Wald chi2(14)     =    1863.93
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -16396.411               Pseudo R2         =     0.0624
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .2135884   .1634118     1.31   0.191    -.1066929    .5338696
+             post |  -.0902519   .1624087    -0.56   0.578    -.4085671    .2280633
+  type_employment |   .3059818   .1283343     2.38   0.017     .0544512    .5575124
+           female |  -.0882012   .0319543    -2.76   0.006    -.1508305   -.0255719
+              age |   -.128439   .0169442    -7.58   0.000     -.161649   -.0952289
+       age_square |   .0012252   .0002161     5.67   0.000     .0008016    .0016488
+                  |
+          migback |
+               2  |  -.2520665   .0447577    -5.63   0.000      -.33979    -.164343
+               3  |  -.0959077   .0553389    -1.73   0.083      -.20437    .0125546
+                  |
+          hh_size |   .2243388   .0272479     8.23   0.000      .170934    .2777437
+           nchild |  -.3421249     .03472    -9.85   0.000    -.4101749    -.274075
+        full_time |    .144624   .0425167     3.40   0.001     .0612927    .2279552
+     years_employ |   .0504024   .0045762    11.01   0.000     .0414333    .0593716
+  education_years |   .2474837   .0070996    34.86   0.000     .2335688    .2613986
+vocational_degree |   .2369459   .0358563     6.61   0.000     .1666689    .3072229
+            _cons |  -.7032632   .3515657    -2.00   0.045    -1.392319   -.0142071
+-----------------------------------------------------------------------------------
+
+. estimates store logit3
+
+. 
+. logit if_savings interaction type_employment female age age_square i.migback ///
+>         hh_size nchild full_time years_employ education_years vocational_degree i.syea
+> r, robust
+
+Iteration 0:   log pseudolikelihood = -17486.856  
+Iteration 1:   log pseudolikelihood = -16342.306  
+Iteration 2:   log pseudolikelihood = -16302.981  
+Iteration 3:   log pseudolikelihood =  -16302.81  
+Iteration 4:   log pseudolikelihood =  -16302.81  
+
+Logistic regression                             Number of obs     =     30,148
+                                                Wald chi2(43)     =    1996.82
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood =  -16302.81               Pseudo R2         =     0.0677
+
+-----------------------------------------------------------------------------------
+                  |               Robust
+       if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+      interaction |   .1818001   .1636568     1.11   0.267    -.1389614    .5025616
+  type_employment |   .2822965   .1271337     2.22   0.026      .033119     .531474
+           female |  -.1053788   .0321533    -3.28   0.001     -.168398   -.0423595
+              age |  -.0200504   .0192772    -1.04   0.298     -.057833    .0177323
+       age_square |  -.0003795   .0002557    -1.48   0.138    -.0008808    .0001218
+                  |
+          migback |
+               2  |  -.2462262   .0449143    -5.48   0.000    -.3342567   -.1581958
+               3  |  -.0943166   .0556522    -1.69   0.090     -.203393    .0147598
+                  |
+          hh_size |   .2217742   .0273615     8.11   0.000     .1681466    .2754018
+           nchild |  -.3446094   .0348749    -9.88   0.000    -.4129631   -.2762558
+        full_time |   .1541583   .0427714     3.60   0.000     .0703279    .2379887
+     years_employ |    .048789   .0046236    10.55   0.000     .0397269    .0578511
+  education_years |   .2467648   .0071652    34.44   0.000     .2327212    .2608084
+vocational_degree |   .2527946   .0359659     7.03   0.000     .1823027    .3232865
+                  |
+            syear |
+            1993  |   .0838913    .313917     0.27   0.789    -.5313748    .6991574
+            1994  |    .221171   .3033219     0.73   0.466    -.3733289    .8156709
+            1995  |  -.2152857    .270087    -0.80   0.425    -.7446464    .3140751
+            1996  |  -.1921602   .2680632    -0.72   0.473    -.7175544    .3332341
+            1997  |  -.1295793   .2651419    -0.49   0.625     -.649248    .3900893
+            1998  |  -.3275925   .2581093    -1.27   0.204    -.8334775    .1782925
+            1999  |  -.2764118   .2557964    -1.08   0.280    -.7777635      .22494
+            2000  |  -.4285433    .248606    -1.72   0.085     -.915802    .0587154
+            2001  |  -.3118017   .2485666    -1.25   0.210    -.7989833    .1753798
+            2002  |  -.4724071   .2472821    -1.91   0.056    -.9570712    .0122569
+            2003  |  -.4856403   .2468795    -1.97   0.049    -.9695153   -.0017654
+            2004  |  -.4710521   .2465844    -1.91   0.056    -.9543487    .0122444
+            2005  |  -.4375062   .2462346    -1.78   0.076    -.9201171    .0451047
+            2006  |   -.608462    .245279    -2.48   0.013      -1.0892   -.1277239
+            2007  |  -.6168871   .2929473    -2.11   0.035    -1.191053   -.0427208
+            2008  |  -.5763862   .2935894    -1.96   0.050    -1.151811   -.0009616
+            2009  |  -.5982567   .2943053    -2.03   0.042    -1.175085   -.0214288
+            2010  |   -.553399   .2955514    -1.87   0.061    -1.132669     .025871
+            2011  |   -.348334   .2970871    -1.17   0.241     -.930614     .233946
+            2012  |  -.4390869   .2979823    -1.47   0.141    -1.023121    .1449477
+            2013  |  -.3421947   .2997122    -1.14   0.254    -.9296198    .2452305
+            2014  |  -.2534757   .3010941    -0.84   0.400    -.8436093    .3366578
+            2015  |  -.2524627   .3024307    -0.83   0.404    -.8452159    .3402906
+            2016  |   -.252994    .303811    -0.83   0.405    -.8484526    .3424647
+            2017  |  -.1536622   .3060076    -0.50   0.616    -.7534261    .4461018
+            2018  |     .01854   .3084496     0.06   0.952    -.5860101      .62309
+            2019  |   .1081277   .3116815     0.35   0.729    -.5027568    .7190121
+            2020  |    .064466   .3138634     0.21   0.837     -.550695    .6796269
+            2021  |   .9024636   .3528302     2.56   0.011     .2109291    1.593998
+            2022  |   .2381875   .3311742     0.72   0.472     -.410902    .8872771
+                  |
+            _cons |  -2.035258   .4299376    -4.73   0.000     -2.87792   -1.192596
+-----------------------------------------------------------------------------------
+
+. estimates store logit4
+
+. 
+. 
+. 
+. exit
+
+end of do-file
+
+
+. do "/var/folders/yl/p32nbf2s40n1mp9q90xpjfmc0000gn/T//SD00865.000000"
+
+. predict xbhat, xb
+(622 missing values generated)
+
+. 
+. * 2) Build the squared and cubic terms of that index
+. gen xb2 = xbhat^2
+(622 missing values generated)
+
+. gen xb3 = xbhat^3
+(622 missing values generated)
+
+. 
+. * 3) Re-estimate the probit, now including these extra powers
+. probit if_savings xbhat xb2 xb3
+
+Iteration 0:   log likelihood = -17486.856  
+Iteration 1:   log likelihood = -16309.099  
+Iteration 2:   log likelihood =  -16298.94  
+Iteration 3:   log likelihood = -16298.891  
+Iteration 4:   log likelihood = -16298.891  
+
+Probit regression                               Number of obs     =     30,148
+                                                LR chi2(3)        =    2375.93
+                                                Prob > chi2       =     0.0000
+Log likelihood = -16298.891                     Pseudo R2         =     0.0679
+
+------------------------------------------------------------------------------
+  if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       xbhat |   .6975384   .0314627    22.17   0.000     .6358726    .7592041
+         xb2 |  -.0359154   .0267229    -1.34   0.179    -.0882913    .0164605
+         xb3 |  -.0083397    .007852    -1.06   0.288    -.0237294      .00705
+       _cons |   -.023335   .0174806    -1.33   0.182    -.0575965    .0109264
+------------------------------------------------------------------------------
+
+. 
+. * 4) Test whether α1=α2=0
+. test xb2 xb3
+
+ ( 1)  [if_savings]xb2 = 0
+ ( 2)  [if_savings]xb3 = 0
+
+           chi2(  2) =   26.77
+         Prob > chi2 =    0.0000
+
+. 
+end of do-file
+
+. do "/var/folders/yl/p32nbf2s40n1mp9q90xpjfmc0000gn/T//SD00865.000000"
+
+. 
+. * 3) Re-estimate the probit, now including these extra powers
+. logit if_savings xbhat xb2 xb3
+
+Iteration 0:   log likelihood = -17486.856  
+Iteration 1:   log likelihood =   -16335.8  
+Iteration 2:   log likelihood = -16297.235  
+Iteration 3:   log likelihood = -16296.291  
+Iteration 4:   log likelihood = -16296.288  
+Iteration 5:   log likelihood = -16296.288  
+
+Logistic regression                             Number of obs     =     30,148
+                                                LR chi2(3)        =    2381.14
+                                                Prob > chi2       =     0.0000
+Log likelihood = -16296.288                     Pseudo R2         =     0.0681
+
+------------------------------------------------------------------------------
+  if_savings |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       xbhat |   1.171277   .0620336    18.88   0.000     1.049693     1.29286
+         xb2 |  -.0922232   .0621896    -1.48   0.138    -.2141126    .0296663
+         xb3 |   .0033268   .0187018     0.18   0.859    -.0333281    .0399818
+       _cons |  -.0510236   .0288853    -1.77   0.077    -.1076378    .0055906
+------------------------------------------------------------------------------
+
+. 
+. * 4) Test whether α1=α2=0
+. test xb2 xb3
+
+ ( 1)  [if_savings]xb2 = 0
+ ( 2)  [if_savings]xb3 = 0
+
+           chi2(  2) =   13.13
+         Prob > chi2 =    0.0014
+
+. 
+end of do-file
+

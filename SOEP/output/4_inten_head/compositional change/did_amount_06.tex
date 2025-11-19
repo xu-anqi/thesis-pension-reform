@@ -1,0 +1,62 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Intensive Margin: Effect of the 2006 Pension Reform on Amount Saved 06}
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}&\multicolumn{1}{c}{(5)}&\multicolumn{1}{c}{(6)}\\
+                    &\multicolumn{1}{c}{log}&\multicolumn{1}{c}{log}&\multicolumn{1}{c}{log}&\multicolumn{1}{c}{log}&\multicolumn{1}{c}{log}&\multicolumn{1}{c}{log}\\
+\midrule
+interaction         &      -0.097         &      -0.154         &      -0.129         &      -0.107         &      -0.016         &      -0.007         \\
+                    &     (0.163)         &     (0.158)         &     (0.173)         &     (0.172)         &     (0.114)         &     (0.114)         \\
+\addlinespace
+post                &       0.340\sym{**} &       0.186         &       0.130         &                     &      -0.021         &                     \\
+                    &     (0.162)         &     (0.157)         &     (0.173)         &                     &     (0.115)         &                     \\
+\addlinespace
+type\_employment     &      -0.536\sym{***}&      -0.422\sym{***}&      -0.492\sym{***}&      -0.518\sym{***}&                     &                     \\
+                    &     (0.148)         &     (0.139)         &     (0.156)         &     (0.154)         &                     &                     \\
+\addlinespace
+female              &                     &      -0.135\sym{***}&      -0.109\sym{***}&      -0.114\sym{***}&                     &                     \\
+                    &                     &     (0.020)         &     (0.022)         &     (0.022)         &                     &                     \\
+\addlinespace
+age                 &                     &       0.053\sym{***}&      -0.002         &       0.031\sym{**} &       0.009         &       0.142\sym{*}  \\
+                    &                     &     (0.012)         &     (0.012)         &     (0.013)         &     (0.014)         &     (0.074)         \\
+\addlinespace
+age\_square          &                     &      -0.000\sym{***}&      -0.000         &      -0.001\sym{***}&      -0.000\sym{***}&      -0.001\sym{***}\\
+                    &                     &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         \\
+\addlinespace
+1                   &                     &       0.000         &       0.000         &       0.000         &                     &                     \\
+                    &                     &         (.)         &         (.)         &         (.)         &                     &                     \\
+\addlinespace
+2                   &                     &      -0.416\sym{***}&      -0.344\sym{***}&      -0.351\sym{***}&                     &                     \\
+                    &                     &     (0.048)         &     (0.047)         &     (0.047)         &                     &                     \\
+\addlinespace
+3                   &                     &      -0.025         &      -0.025         &      -0.024         &                     &                     \\
+                    &                     &     (0.045)         &     (0.043)         &     (0.043)         &                     &                     \\
+\addlinespace
+Current Household Size&                     &       0.292\sym{***}&       0.312\sym{***}&       0.309\sym{***}&       0.167\sym{***}&       0.162\sym{***}\\
+                    &                     &     (0.020)         &     (0.020)         &     (0.020)         &     (0.019)         &     (0.019)         \\
+\addlinespace
+nchild              &                     &      -0.323\sym{***}&      -0.324\sym{***}&      -0.324\sym{***}&      -0.213\sym{***}&      -0.213\sym{***}\\
+                    &                     &     (0.026)         &     (0.027)         &     (0.027)         &     (0.019)         &     (0.019)         \\
+\addlinespace
+full\_time           &                     &                     &      -0.032         &      -0.021         &       0.130\sym{***}&       0.135\sym{***}\\
+                    &                     &                     &     (0.033)         &     (0.033)         &     (0.033)         &     (0.034)         \\
+\addlinespace
+years\_employ        &                     &                     &       0.029\sym{***}&       0.027\sym{***}&       0.049\sym{***}&       0.047\sym{***}\\
+                    &                     &                     &     (0.004)         &     (0.004)         &     (0.009)         &     (0.009)         \\
+\addlinespace
+education\_years     &                     &                     &       0.116\sym{***}&       0.116\sym{***}&       0.043\sym{*}  &       0.054\sym{**} \\
+                    &                     &                     &     (0.005)         &     (0.005)         &     (0.024)         &     (0.024)         \\
+\addlinespace
+vocational\_degree   &                     &                     &      -0.106\sym{***}&      -0.099\sym{***}&      -0.241\sym{***}&      -0.175\sym{*}  \\
+                    &                     &                     &     (0.026)         &     (0.026)         &     (0.093)         &     (0.094)         \\
+\addlinespace
+Constant            &       6.447\sym{***}&       4.760\sym{***}&       4.478\sym{***}&       4.188\sym{***}&       4.856\sym{***}&       2.295         \\
+                    &     (0.147)         &     (0.265)         &     (0.277)         &     (0.317)         &     (0.385)         &     (1.533)         \\
+\midrule
+Observations        &        7104         &        7074         &        6986         &        6986         &        6986         &        6986         \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize Standard errors in parentheses}\\
+\multicolumn{7}{l}{\footnotesize \sym{*} \(p<0.10\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}
